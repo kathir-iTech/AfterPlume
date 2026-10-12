@@ -1,0 +1,10 @@
+{
+  "id": "unep-mars-2026-10-12",
+  "sha256": "e0721015e925c4d70012ca13e697f5638421bc7c2a42f7e3dce8edec6cee8481",
+  "url": "https://unepazeconomyadlsstorage.blob.core.windows.net/public/unep_methanedata_detected_plumes_csv.zip",
+  "captured": "2026-10-12",
+  "recordCount": 30319,
+  "sourceCount": 4211,
+  "license": "CC BY-NC-SA 4.0 (download); CC BY-NC 4.0 (terms)",
+  "coverage": "Detection records only; per-overpass negative coverage unavailable"
+}

@@ -1,0 +1,119 @@
+{
+  "generated": "2026-10-12T19:04:37.329Z",
+  "runtime": "Chrome browser, ONNX Runtime WASM, one thread, local Vite server",
+  "scope": "Cold local assistance includes model/runtime loading and reference embeddings. Warm UI duration includes Playwright polling and rendering; rounded inference duration is reported separately. No human task-completion or emissions-impact measurement.",
+  "device": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "hardwareConcurrency": 2,
+    "deviceMemoryGiB": 8
+  },
+  "coldUiMilliseconds": 29340.365399999995,
+  "warmUi": {
+    "count": 20,
+    "p50": 414.3747999999978,
+    "p95": 561.5866999999998
+  },
+  "warm": [
+    {
+      "run": 1,
+      "uiMilliseconds": 414.3747999999978,
+      "inferenceMilliseconds": 149
+    },
+    {
+      "run": 2,
+      "uiMilliseconds": 299.45789999999397,
+      "inferenceMilliseconds": 93
+    },
+    {
+      "run": 3,
+      "uiMilliseconds": 488.1264999999985,
+      "inferenceMilliseconds": 252
+    },
+    {
+      "run": 4,
+      "uiMilliseconds": 420.4429999999993,
+      "inferenceMilliseconds": 213
+    },
+    {
+      "run": 5,
+      "uiMilliseconds": 471.64360000000306,
+      "inferenceMilliseconds": 190
+    },
+    {
+      "run": 6,
+      "uiMilliseconds": 411.3761999999988,
+      "inferenceMilliseconds": 212
+    },
+    {
+      "run": 7,
+      "uiMilliseconds": 416.17059999999765,
+      "inferenceMilliseconds": 215
+    },
+    {
+      "run": 8,
+      "uiMilliseconds": 334.968200000003,
+      "inferenceMilliseconds": 134
+    },
+    {
+      "run": 9,
+      "uiMilliseconds": 500.95070000000123,
+      "inferenceMilliseconds": 170
+    },
+    {
+      "run": 10,
+      "uiMilliseconds": 561.5866999999998,
+      "inferenceMilliseconds": 160
+    },
+    {
+      "run": 11,
+      "uiMilliseconds": 332.45790000000125,
+      "inferenceMilliseconds": 167
+    },
+    {
+      "run": 12,
+      "uiMilliseconds": 411.48809999999503,
+      "inferenceMilliseconds": 122
+    },
+    {
+      "run": 13,
+      "uiMilliseconds": 481.59820000000036,
+      "inferenceMilliseconds": 153
+    },
+    {
+      "run": 14,
+      "uiMilliseconds": 448.7768999999971,
+      "inferenceMilliseconds": 168
+    },
+    {
+      "run": 15,
+      "uiMilliseconds": 343.01110000000335,
+      "inferenceMilliseconds": 136
+    },
+    {
+      "run": 16,
+      "uiMilliseconds": 483.7782999999981,
+      "inferenceMilliseconds": 153
+    },
+    {
+      "run": 17,
+      "uiMilliseconds": 612.9020000000019,
+      "inferenceMilliseconds": 167
+    },
+    {
+      "run": 18,
+      "uiMilliseconds": 396.0400000000009,
+      "inferenceMilliseconds": 150
+    },
+    {
+      "run": 19,
+      "uiMilliseconds": 338.39859999999317,
+      "inferenceMilliseconds": 110
+    },
+    {
+      "run": 20,
+      "uiMilliseconds": 347.3367999999973,
+      "inferenceMilliseconds": 107
+    }
+  ],
+  "pageErrors": []
+}

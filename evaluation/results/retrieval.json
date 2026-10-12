@@ -1,0 +1,2769 @@
+{
+  "generated": "2026-10-12T18:49:27.871Z",
+  "model": {
+    "id": "Xenova/all-MiniLM-L6-v2",
+    "revision": "751bff37182d3f1213fa05d7196b954e230abad9",
+    "dtype": "q8",
+    "dimensions": 384,
+    "license": "Apache-2.0"
+  },
+  "queryFileSha256": "5d5ee8eae29f7397e4fb9a9670966927caecadbf1661998590b264055b38bcc6",
+  "method": "60 authored queries in 10 scenario groups; 7 development groups and 3 group-separated holdout groups. No user study or scientific classification accuracy claim. No weights were tuned.",
+  "device": {
+    "cpu": "Intel(R) Celeron(R) N4500 @ 1.10GHz",
+    "memoryBytes": 12718891008,
+    "platform": "win32",
+    "arch": "x64",
+    "node": "v24.18.1"
+  },
+  "runtime": "Node CPU ONNX runtime; browser timings are measured separately",
+  "coldLoadMs": 880.4943000000003,
+  "queryLatency": {
+    "count": 60,
+    "p50": 22.423499999998967,
+    "p95": 66.26219999999921
+  },
+  "downloadedModelBytes": 23685172,
+  "development": {
+    "bm25": {
+      "count": 42,
+      "hitAt1": 0.5952380952380952,
+      "hitAt3": 0.7857142857142857,
+      "mrr": 0.717989417989418
+    },
+    "semantic": {
+      "count": 42,
+      "hitAt1": 0.8095238095238095,
+      "hitAt3": 0.9523809523809523,
+      "mrr": 0.8916666666666667
+    },
+    "hybrid": {
+      "count": 42,
+      "hitAt1": 0.7619047619047619,
+      "hitAt3": 0.9285714285714286,
+      "mrr": 0.840079365079365
+    }
+  },
+  "holdout": {
+    "bm25": {
+      "count": 18,
+      "hitAt1": 0.7777777777777778,
+      "hitAt3": 0.9444444444444444,
+      "mrr": 0.875
+    },
+    "semantic": {
+      "count": 18,
+      "hitAt1": 0.8333333333333334,
+      "hitAt3": 1,
+      "mrr": 0.9166666666666666
+    },
+    "hybrid": {
+      "count": 18,
+      "hitAt1": 0.8888888888888888,
+      "hitAt3": 1,
+      "mrr": 0.9444444444444444
+    }
+  },
+  "observations": [
+    {
+      "group": "bounded",
+      "split": "development",
+      "query": "Which detections fall between these two dates for this source?",
+      "expected": "bounded",
+      "milliseconds": 50.65219999999863,
+      "ranked": {
+        "bm25": [
+          "bounded",
+          "time",
+          "source",
+          "missing",
+          "hash",
+          "coverage",
+          "rates",
+          "repair",
+          "response",
+          "snapshot"
+        ],
+        "semantic": [
+          "bounded",
+          "time",
+          "repair",
+          "coverage",
+          "missing",
+          "hash",
+          "snapshot",
+          "rates",
+          "source",
+          "response"
+        ],
+        "hybrid": [
+          "bounded",
+          "time",
+          "missing",
+          "coverage",
+          "repair",
+          "hash",
+          "source",
+          "rates",
+          "snapshot",
+          "response"
+        ]
+      }
+    },
+    {
+      "group": "bounded",
+      "split": "development",
+      "query": "I want to check the claim that no detections were recorded in May.",
+      "expected": "bounded",
+      "milliseconds": 24.644500000000335,
+      "ranked": {
+        "bm25": [
+          "missing",
+          "bounded",
+          "response",
+          "hash",
+          "snapshot",
+          "time",
+          "repair",
+          "rates",
+          "coverage",
+          "source"
+        ],
+        "semantic": [
+          "coverage",
+          "bounded",
+          "missing",
+          "repair",
+          "response",
+          "hash",
+          "snapshot",
+          "time",
+          "rates",
+          "source"
+        ],
+        "hybrid": [
+          "missing",
+          "bounded",
+          "response",
+          "coverage",
+          "hash",
+          "repair",
+          "snapshot",
+          "time",
+          "rates",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "bounded",
+      "split": "development",
+      "query": "How do I bound a no detections claim to an interval?",
+      "expected": "bounded",
+      "milliseconds": 16.692199999999502,
+      "ranked": {
+        "bm25": [
+          "missing",
+          "bounded",
+          "response",
+          "rates",
+          "coverage",
+          "repair",
+          "hash",
+          "snapshot",
+          "time",
+          "source"
+        ],
+        "semantic": [
+          "bounded",
+          "coverage",
+          "missing",
+          "response",
+          "repair",
+          "rates",
+          "time",
+          "hash",
+          "source",
+          "snapshot"
+        ],
+        "hybrid": [
+          "bounded",
+          "missing",
+          "coverage",
+          "response",
+          "rates",
+          "repair",
+          "hash",
+          "time",
+          "snapshot",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "bounded",
+      "split": "development",
+      "query": "Select all observations with the same source identifier.",
+      "expected": "bounded",
+      "milliseconds": 15.641300000001138,
+      "ranked": {
+        "bm25": [
+          "source",
+          "coverage",
+          "response",
+          "hash",
+          "bounded",
+          "missing",
+          "time",
+          "snapshot",
+          "rates",
+          "repair"
+        ],
+        "semantic": [
+          "bounded",
+          "source",
+          "coverage",
+          "missing",
+          "rates",
+          "response",
+          "hash",
+          "snapshot",
+          "repair",
+          "time"
+        ],
+        "hybrid": [
+          "source",
+          "coverage",
+          "bounded",
+          "response",
+          "missing",
+          "hash",
+          "rates",
+          "snapshot",
+          "time",
+          "repair"
+        ]
+      }
+    },
+    {
+      "group": "bounded",
+      "split": "development",
+      "query": "Does one sensor's record count for this interval?",
+      "expected": "bounded",
+      "milliseconds": 14.783900000000358,
+      "ranked": {
+        "bm25": [
+          "coverage",
+          "bounded",
+          "missing",
+          "time",
+          "hash",
+          "rates",
+          "repair",
+          "response",
+          "snapshot",
+          "source"
+        ],
+        "semantic": [
+          "bounded",
+          "coverage",
+          "missing",
+          "rates",
+          "repair",
+          "hash",
+          "time",
+          "response",
+          "snapshot",
+          "source"
+        ],
+        "hybrid": [
+          "bounded",
+          "coverage",
+          "missing",
+          "rates",
+          "time",
+          "hash",
+          "repair",
+          "response",
+          "snapshot",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "bounded",
+      "split": "development",
+      "query": "What does no recorded detections mean here?",
+      "expected": "bounded",
+      "milliseconds": 14.313099999999395,
+      "ranked": {
+        "bm25": [
+          "bounded",
+          "missing",
+          "coverage",
+          "hash",
+          "repair",
+          "rates",
+          "response",
+          "snapshot",
+          "source",
+          "time"
+        ],
+        "semantic": [
+          "coverage",
+          "bounded",
+          "missing",
+          "repair",
+          "hash",
+          "response",
+          "snapshot",
+          "rates",
+          "time",
+          "source"
+        ],
+        "hybrid": [
+          "bounded",
+          "coverage",
+          "missing",
+          "repair",
+          "hash",
+          "response",
+          "rates",
+          "snapshot",
+          "source",
+          "time"
+        ]
+      }
+    },
+    {
+      "group": "coverage",
+      "split": "development",
+      "query": "No rows appeared last month. Does that mean emissions stopped?",
+      "expected": "coverage",
+      "milliseconds": 22.85109999999986,
+      "ranked": {
+        "bm25": [
+          "response",
+          "coverage",
+          "hash",
+          "source",
+          "bounded",
+          "missing",
+          "repair",
+          "rates",
+          "snapshot",
+          "time"
+        ],
+        "semantic": [
+          "coverage",
+          "bounded",
+          "response",
+          "missing",
+          "repair",
+          "rates",
+          "hash",
+          "snapshot",
+          "source",
+          "time"
+        ],
+        "hybrid": [
+          "coverage",
+          "response",
+          "bounded",
+          "hash",
+          "missing",
+          "repair",
+          "source",
+          "rates",
+          "snapshot",
+          "time"
+        ]
+      }
+    },
+    {
+      "group": "coverage",
+      "split": "development",
+      "query": "Can an empty list prove zero emissions?",
+      "expected": "coverage",
+      "milliseconds": 9.207099999999627,
+      "ranked": {
+        "bm25": [
+          "coverage",
+          "response",
+          "hash",
+          "missing",
+          "repair",
+          "rates",
+          "bounded",
+          "snapshot",
+          "source",
+          "time"
+        ],
+        "semantic": [
+          "coverage",
+          "bounded",
+          "missing",
+          "response",
+          "rates",
+          "hash",
+          "source",
+          "snapshot",
+          "repair",
+          "time"
+        ],
+        "hybrid": [
+          "coverage",
+          "response",
+          "missing",
+          "bounded",
+          "hash",
+          "rates",
+          "repair",
+          "source",
+          "snapshot",
+          "time"
+        ]
+      }
+    },
+    {
+      "group": "coverage",
+      "split": "development",
+      "query": "Where are the negative satellite observations?",
+      "expected": "coverage",
+      "milliseconds": 16.478900000000067,
+      "ranked": {
+        "bm25": [
+          "coverage",
+          "repair",
+          "rates",
+          "bounded",
+          "time",
+          "hash",
+          "source",
+          "snapshot",
+          "response",
+          "missing"
+        ],
+        "semantic": [
+          "coverage",
+          "bounded",
+          "missing",
+          "repair",
+          "source",
+          "rates",
+          "time",
+          "hash",
+          "response",
+          "snapshot"
+        ],
+        "hybrid": [
+          "coverage",
+          "bounded",
+          "repair",
+          "rates",
+          "source",
+          "time",
+          "missing",
+          "hash",
+          "snapshot",
+          "response"
+        ]
+      }
+    },
+    {
+      "group": "coverage",
+      "split": "development",
+      "query": "Do clouds and sensitivity limit the observation coverage?",
+      "expected": "coverage",
+      "milliseconds": 32.786300000001575,
+      "ranked": {
+        "bm25": [
+          "coverage",
+          "rates",
+          "response",
+          "time",
+          "source",
+          "hash",
+          "snapshot",
+          "bounded",
+          "repair",
+          "missing"
+        ],
+        "semantic": [
+          "coverage",
+          "bounded",
+          "missing",
+          "rates",
+          "hash",
+          "response",
+          "repair",
+          "source",
+          "snapshot",
+          "time"
+        ],
+        "hybrid": [
+          "coverage",
+          "rates",
+          "response",
+          "bounded",
+          "hash",
+          "missing",
+          "source",
+          "time",
+          "repair",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "group": "coverage",
+      "split": "development",
+      "query": "I need proof of sustained cessation, not an empty download.",
+      "expected": "coverage",
+      "milliseconds": 27.600399999999354,
+      "ranked": {
+        "bm25": [
+          "coverage",
+          "source",
+          "missing",
+          "bounded",
+          "rates",
+          "hash",
+          "response",
+          "repair",
+          "snapshot",
+          "time"
+        ],
+        "semantic": [
+          "response",
+          "coverage",
+          "bounded",
+          "snapshot",
+          "hash",
+          "missing",
+          "repair",
+          "time",
+          "rates",
+          "source"
+        ],
+        "hybrid": [
+          "coverage",
+          "bounded",
+          "response",
+          "missing",
+          "hash",
+          "source",
+          "snapshot",
+          "rates",
+          "repair",
+          "time"
+        ]
+      }
+    },
+    {
+      "group": "coverage",
+      "split": "development",
+      "query": "Was the source observed on every day without a detection?",
+      "expected": "coverage",
+      "milliseconds": 10.476699999999255,
+      "ranked": {
+        "bm25": [
+          "bounded",
+          "repair",
+          "source",
+          "time",
+          "response",
+          "hash",
+          "missing",
+          "coverage",
+          "snapshot",
+          "rates"
+        ],
+        "semantic": [
+          "bounded",
+          "coverage",
+          "missing",
+          "repair",
+          "rates",
+          "time",
+          "hash",
+          "response",
+          "snapshot",
+          "source"
+        ],
+        "hybrid": [
+          "bounded",
+          "repair",
+          "coverage",
+          "missing",
+          "time",
+          "source",
+          "response",
+          "hash",
+          "rates",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "group": "repair",
+      "split": "development",
+      "query": "The operator says it repaired the leak. What evidence is needed?",
+      "expected": "repair",
+      "milliseconds": 23.641099999998914,
+      "ranked": {
+        "bm25": [
+          "repair",
+          "response",
+          "hash",
+          "time",
+          "rates",
+          "snapshot",
+          "source",
+          "bounded",
+          "coverage",
+          "missing"
+        ],
+        "semantic": [
+          "repair",
+          "response",
+          "missing",
+          "hash",
+          "source",
+          "bounded",
+          "snapshot",
+          "time",
+          "coverage",
+          "rates"
+        ],
+        "hybrid": [
+          "repair",
+          "response",
+          "hash",
+          "time",
+          "source",
+          "missing",
+          "snapshot",
+          "bounded",
+          "rates",
+          "coverage"
+        ]
+      }
+    },
+    {
+      "group": "repair",
+      "split": "development",
+      "query": "Does a later plume prove a repair never happened?",
+      "expected": "repair",
+      "milliseconds": 43.06869999999981,
+      "ranked": {
+        "bm25": [
+          "repair",
+          "hash",
+          "missing",
+          "coverage",
+          "snapshot",
+          "response",
+          "time",
+          "bounded",
+          "rates",
+          "source"
+        ],
+        "semantic": [
+          "repair",
+          "missing",
+          "response",
+          "coverage",
+          "hash",
+          "snapshot",
+          "bounded",
+          "rates",
+          "source",
+          "time"
+        ],
+        "hybrid": [
+          "repair",
+          "missing",
+          "hash",
+          "coverage",
+          "response",
+          "snapshot",
+          "bounded",
+          "time",
+          "rates",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "repair",
+      "split": "development",
+      "query": "Can satellite records validate a maintenance work order?",
+      "expected": "repair",
+      "milliseconds": 20.05199999999968,
+      "ranked": {
+        "bm25": [
+          "hash",
+          "repair",
+          "snapshot",
+          "response",
+          "bounded",
+          "coverage",
+          "rates",
+          "missing",
+          "time",
+          "source"
+        ],
+        "semantic": [
+          "repair",
+          "coverage",
+          "bounded",
+          "hash",
+          "time",
+          "source",
+          "response",
+          "snapshot",
+          "missing",
+          "rates"
+        ],
+        "hybrid": [
+          "repair",
+          "hash",
+          "coverage",
+          "bounded",
+          "snapshot",
+          "response",
+          "time",
+          "source",
+          "rates",
+          "missing"
+        ]
+      }
+    },
+    {
+      "group": "repair",
+      "split": "development",
+      "query": "How do field inspections establish mitigation after a repair?",
+      "expected": "repair",
+      "milliseconds": 22.423499999998967,
+      "ranked": {
+        "bm25": [
+          "repair",
+          "response",
+          "rates",
+          "missing",
+          "snapshot",
+          "time",
+          "hash",
+          "bounded",
+          "coverage",
+          "source"
+        ],
+        "semantic": [
+          "repair",
+          "response",
+          "snapshot",
+          "hash",
+          "coverage",
+          "missing",
+          "bounded",
+          "source",
+          "time",
+          "rates"
+        ],
+        "hybrid": [
+          "repair",
+          "response",
+          "snapshot",
+          "missing",
+          "hash",
+          "rates",
+          "coverage",
+          "time",
+          "bounded",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "repair",
+      "split": "development",
+      "query": "We fixed the pipe in May but a detection appeared in June.",
+      "expected": "repair",
+      "milliseconds": 10.900499999999738,
+      "ranked": {
+        "bm25": [
+          "snapshot",
+          "time",
+          "hash",
+          "rates",
+          "missing",
+          "coverage",
+          "bounded",
+          "repair",
+          "response",
+          "source"
+        ],
+        "semantic": [
+          "repair",
+          "bounded",
+          "missing",
+          "coverage",
+          "response",
+          "hash",
+          "snapshot",
+          "rates",
+          "time",
+          "source"
+        ],
+        "hybrid": [
+          "snapshot",
+          "missing",
+          "repair",
+          "bounded",
+          "hash",
+          "coverage",
+          "time",
+          "rates",
+          "response",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "repair",
+      "split": "development",
+      "query": "What follow-up should accompany a claimed repair date?",
+      "expected": "repair",
+      "milliseconds": 41.76379999999881,
+      "ranked": {
+        "bm25": [
+          "repair",
+          "time",
+          "missing",
+          "snapshot",
+          "response",
+          "hash",
+          "bounded",
+          "rates",
+          "coverage",
+          "source"
+        ],
+        "semantic": [
+          "repair",
+          "response",
+          "hash",
+          "snapshot",
+          "time",
+          "bounded",
+          "missing",
+          "coverage",
+          "source",
+          "rates"
+        ],
+        "hybrid": [
+          "repair",
+          "time",
+          "response",
+          "snapshot",
+          "hash",
+          "missing",
+          "bounded",
+          "coverage",
+          "rates",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "rates",
+      "split": "development",
+      "query": "Can I multiply this rate by 8760 for annual emissions?",
+      "expected": "rates",
+      "milliseconds": 28.961300000000847,
+      "ranked": {
+        "bm25": [
+          "response",
+          "source",
+          "coverage",
+          "time",
+          "rates",
+          "hash",
+          "bounded",
+          "missing",
+          "repair",
+          "snapshot"
+        ],
+        "semantic": [
+          "rates",
+          "bounded",
+          "response",
+          "coverage",
+          "missing",
+          "source",
+          "snapshot",
+          "hash",
+          "repair",
+          "time"
+        ],
+        "hybrid": [
+          "response",
+          "rates",
+          "coverage",
+          "source",
+          "bounded",
+          "missing",
+          "time",
+          "hash",
+          "snapshot",
+          "repair"
+        ]
+      }
+    },
+    {
+      "group": "rates",
+      "split": "development",
+      "query": "How do I compare a baseline rate and one follow-up rate?",
+      "expected": "rates",
+      "milliseconds": 19.4929000000011,
+      "ranked": {
+        "bm25": [
+          "repair",
+          "bounded",
+          "rates",
+          "response",
+          "missing",
+          "snapshot",
+          "time",
+          "hash",
+          "coverage",
+          "source"
+        ],
+        "semantic": [
+          "rates",
+          "response",
+          "snapshot",
+          "bounded",
+          "repair",
+          "coverage",
+          "missing",
+          "hash",
+          "time",
+          "source"
+        ],
+        "hybrid": [
+          "rates",
+          "repair",
+          "bounded",
+          "response",
+          "snapshot",
+          "missing",
+          "coverage",
+          "time",
+          "hash",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "rates",
+      "split": "development",
+      "query": "Is reported standard deviation a confidence interval?",
+      "expected": "rates",
+      "milliseconds": 9.245899999999892,
+      "ranked": {
+        "bm25": [
+          "rates",
+          "missing",
+          "bounded",
+          "coverage",
+          "snapshot",
+          "time",
+          "repair",
+          "response",
+          "hash",
+          "source"
+        ],
+        "semantic": [
+          "rates",
+          "missing",
+          "bounded",
+          "coverage",
+          "snapshot",
+          "response",
+          "hash",
+          "time",
+          "repair",
+          "source"
+        ],
+        "hybrid": [
+          "rates",
+          "missing",
+          "bounded",
+          "coverage",
+          "snapshot",
+          "time",
+          "response",
+          "repair",
+          "hash",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "rates",
+      "split": "development",
+      "query": "What are the units of methane flux rate?",
+      "expected": "rates",
+      "milliseconds": 16.784599999999045,
+      "ranked": {
+        "bm25": [
+          "rates",
+          "missing",
+          "bounded",
+          "source",
+          "repair",
+          "time",
+          "hash",
+          "snapshot",
+          "response",
+          "coverage"
+        ],
+        "semantic": [
+          "rates",
+          "missing",
+          "bounded",
+          "coverage",
+          "response",
+          "source",
+          "hash",
+          "time",
+          "snapshot",
+          "repair"
+        ],
+        "hybrid": [
+          "rates",
+          "missing",
+          "bounded",
+          "source",
+          "coverage",
+          "response",
+          "time",
+          "hash",
+          "repair",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "group": "rates",
+      "split": "development",
+      "query": "Can two satellite rates certify a percentage reduction?",
+      "expected": "rates",
+      "milliseconds": 20.20179999999891,
+      "ranked": {
+        "bm25": [
+          "rates",
+          "hash",
+          "coverage",
+          "response",
+          "bounded",
+          "repair",
+          "missing",
+          "snapshot",
+          "time",
+          "source"
+        ],
+        "semantic": [
+          "rates",
+          "bounded",
+          "coverage",
+          "response",
+          "missing",
+          "repair",
+          "source",
+          "time",
+          "hash",
+          "snapshot"
+        ],
+        "hybrid": [
+          "rates",
+          "coverage",
+          "bounded",
+          "response",
+          "hash",
+          "missing",
+          "repair",
+          "source",
+          "time",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "group": "rates",
+      "split": "development",
+      "query": "Are these rates instantaneous or sustained annual totals?",
+      "expected": "rates",
+      "milliseconds": 25.501600000001417,
+      "ranked": {
+        "bm25": [
+          "rates",
+          "coverage",
+          "repair",
+          "source",
+          "bounded",
+          "missing",
+          "response",
+          "hash",
+          "snapshot",
+          "time"
+        ],
+        "semantic": [
+          "rates",
+          "bounded",
+          "coverage",
+          "missing",
+          "time",
+          "response",
+          "hash",
+          "source",
+          "repair",
+          "snapshot"
+        ],
+        "hybrid": [
+          "rates",
+          "coverage",
+          "bounded",
+          "missing",
+          "repair",
+          "source",
+          "response",
+          "time",
+          "hash",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "group": "source",
+      "split": "development",
+      "query": "Can I assign an unassigned nearby plume to this facility?",
+      "expected": "source",
+      "milliseconds": 92.96780000000035,
+      "ranked": {
+        "bm25": [
+          "source",
+          "missing",
+          "repair",
+          "time",
+          "response",
+          "hash",
+          "rates",
+          "bounded",
+          "coverage",
+          "snapshot"
+        ],
+        "semantic": [
+          "source",
+          "missing",
+          "bounded",
+          "rates",
+          "coverage",
+          "response",
+          "repair",
+          "time",
+          "hash",
+          "snapshot"
+        ],
+        "hybrid": [
+          "source",
+          "missing",
+          "repair",
+          "bounded",
+          "rates",
+          "response",
+          "time",
+          "coverage",
+          "hash",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "group": "source",
+      "split": "development",
+      "query": "What does source_name represent?",
+      "expected": "source",
+      "milliseconds": 13.516999999999825,
+      "ranked": {
+        "bm25": [
+          "source",
+          "hash",
+          "bounded",
+          "coverage",
+          "repair",
+          "missing",
+          "rates",
+          "response",
+          "snapshot",
+          "time"
+        ],
+        "semantic": [
+          "source",
+          "bounded",
+          "rates",
+          "hash",
+          "snapshot",
+          "time",
+          "missing",
+          "coverage",
+          "repair",
+          "response"
+        ],
+        "hybrid": [
+          "source",
+          "bounded",
+          "hash",
+          "rates",
+          "coverage",
+          "missing",
+          "repair",
+          "snapshot",
+          "time",
+          "response"
+        ]
+      }
+    },
+    {
+      "group": "source",
+      "split": "development",
+      "query": "Do coordinates prove who owns the leaking facility?",
+      "expected": "source",
+      "milliseconds": 7.46769999999924,
+      "ranked": {
+        "bm25": [
+          "source",
+          "hash",
+          "response",
+          "rates",
+          "repair",
+          "time",
+          "snapshot",
+          "bounded",
+          "coverage",
+          "missing"
+        ],
+        "semantic": [
+          "source",
+          "time",
+          "repair",
+          "bounded",
+          "response",
+          "coverage",
+          "hash",
+          "missing",
+          "rates",
+          "snapshot"
+        ],
+        "hybrid": [
+          "source",
+          "time",
+          "repair",
+          "response",
+          "hash",
+          "bounded",
+          "rates",
+          "coverage",
+          "snapshot",
+          "missing"
+        ]
+      }
+    },
+    {
+      "group": "source",
+      "split": "development",
+      "query": "Match by the exact provider source assignment.",
+      "expected": "source",
+      "milliseconds": 27.52679999999964,
+      "ranked": {
+        "bm25": [
+          "source",
+          "bounded",
+          "time",
+          "hash",
+          "snapshot",
+          "response",
+          "rates",
+          "coverage",
+          "missing",
+          "repair"
+        ],
+        "semantic": [
+          "source",
+          "bounded",
+          "time",
+          "hash",
+          "snapshot",
+          "repair",
+          "missing",
+          "coverage",
+          "rates",
+          "response"
+        ],
+        "hybrid": [
+          "source",
+          "bounded",
+          "time",
+          "hash",
+          "snapshot",
+          "repair",
+          "response",
+          "rates",
+          "missing",
+          "coverage"
+        ]
+      }
+    },
+    {
+      "group": "source",
+      "split": "development",
+      "query": "Two detections are geographically close; can I merge them?",
+      "expected": "source",
+      "milliseconds": 32.89040000000023,
+      "ranked": {
+        "bm25": [
+          "repair",
+          "bounded",
+          "missing",
+          "response",
+          "hash",
+          "coverage",
+          "rates",
+          "snapshot",
+          "source",
+          "time"
+        ],
+        "semantic": [
+          "bounded",
+          "source",
+          "missing",
+          "coverage",
+          "hash",
+          "repair",
+          "time",
+          "response",
+          "snapshot",
+          "rates"
+        ],
+        "hybrid": [
+          "bounded",
+          "missing",
+          "repair",
+          "coverage",
+          "hash",
+          "source",
+          "response",
+          "rates",
+          "time",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "group": "source",
+      "split": "development",
+      "query": "A plume has a blank source ID. What can it establish?",
+      "expected": "source",
+      "milliseconds": 25.50330000000031,
+      "ranked": {
+        "bm25": [
+          "bounded",
+          "hash",
+          "response",
+          "repair",
+          "missing",
+          "source",
+          "snapshot",
+          "time",
+          "rates",
+          "coverage"
+        ],
+        "semantic": [
+          "missing",
+          "bounded",
+          "coverage",
+          "rates",
+          "source",
+          "response",
+          "hash",
+          "repair",
+          "snapshot",
+          "time"
+        ],
+        "hybrid": [
+          "bounded",
+          "missing",
+          "hash",
+          "response",
+          "source",
+          "repair",
+          "coverage",
+          "rates",
+          "snapshot",
+          "time"
+        ]
+      }
+    },
+    {
+      "group": "time",
+      "split": "development",
+      "query": "What timezone is this tile acquisition timestamp in?",
+      "expected": "time",
+      "milliseconds": 81.71819999999934,
+      "ranked": {
+        "bm25": [
+          "time",
+          "rates",
+          "hash",
+          "bounded",
+          "coverage",
+          "missing",
+          "snapshot",
+          "repair",
+          "response",
+          "source"
+        ],
+        "semantic": [
+          "time",
+          "bounded",
+          "repair",
+          "coverage",
+          "source",
+          "rates",
+          "snapshot",
+          "hash",
+          "missing",
+          "response"
+        ],
+        "hybrid": [
+          "time",
+          "bounded",
+          "rates",
+          "coverage",
+          "repair",
+          "hash",
+          "snapshot",
+          "source",
+          "missing",
+          "response"
+        ]
+      }
+    },
+    {
+      "group": "time",
+      "split": "development",
+      "query": "Should my browser convert the timestamp to local time?",
+      "expected": "time",
+      "milliseconds": 42.48880000000099,
+      "ranked": {
+        "bm25": [
+          "time",
+          "repair",
+          "hash",
+          "source",
+          "snapshot",
+          "response",
+          "rates",
+          "bounded",
+          "coverage",
+          "missing"
+        ],
+        "semantic": [
+          "time",
+          "rates",
+          "snapshot",
+          "bounded",
+          "repair",
+          "coverage",
+          "hash",
+          "source",
+          "missing",
+          "response"
+        ],
+        "hybrid": [
+          "time",
+          "repair",
+          "snapshot",
+          "rates",
+          "hash",
+          "bounded",
+          "source",
+          "coverage",
+          "response",
+          "missing"
+        ]
+      }
+    },
+    {
+      "group": "time",
+      "split": "development",
+      "query": "How does the exclusive end date work?",
+      "expected": "time",
+      "milliseconds": 66.26219999999921,
+      "ranked": {
+        "bm25": [
+          "repair",
+          "bounded",
+          "time",
+          "hash",
+          "coverage",
+          "source",
+          "snapshot",
+          "response",
+          "rates",
+          "missing"
+        ],
+        "semantic": [
+          "bounded",
+          "time",
+          "hash",
+          "repair",
+          "coverage",
+          "missing",
+          "snapshot",
+          "response",
+          "source",
+          "rates"
+        ],
+        "hybrid": [
+          "bounded",
+          "repair",
+          "time",
+          "hash",
+          "coverage",
+          "snapshot",
+          "source",
+          "missing",
+          "response",
+          "rates"
+        ]
+      }
+    },
+    {
+      "group": "time",
+      "split": "development",
+      "query": "Can I assert a precise UTC observation from an unlabeled timestamp?",
+      "expected": "time",
+      "milliseconds": 54.11590000000069,
+      "ranked": {
+        "bm25": [
+          "time",
+          "rates",
+          "response",
+          "hash",
+          "missing",
+          "repair",
+          "bounded",
+          "coverage",
+          "snapshot",
+          "source"
+        ],
+        "semantic": [
+          "time",
+          "bounded",
+          "hash",
+          "coverage",
+          "repair",
+          "source",
+          "missing",
+          "response",
+          "rates",
+          "snapshot"
+        ],
+        "hybrid": [
+          "time",
+          "hash",
+          "bounded",
+          "rates",
+          "response",
+          "repair",
+          "coverage",
+          "missing",
+          "source",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "group": "time",
+      "split": "development",
+      "query": "Preserve the provider calendar date without conversion.",
+      "expected": "time",
+      "milliseconds": 25.062300000001414,
+      "ranked": {
+        "bm25": [
+          "time",
+          "source",
+          "snapshot",
+          "response",
+          "bounded",
+          "repair",
+          "hash",
+          "rates",
+          "coverage",
+          "missing"
+        ],
+        "semantic": [
+          "time",
+          "bounded",
+          "source",
+          "repair",
+          "coverage",
+          "missing",
+          "snapshot",
+          "hash",
+          "response",
+          "rates"
+        ],
+        "hybrid": [
+          "time",
+          "source",
+          "bounded",
+          "snapshot",
+          "repair",
+          "response",
+          "coverage",
+          "hash",
+          "missing",
+          "rates"
+        ]
+      }
+    },
+    {
+      "group": "time",
+      "split": "development",
+      "query": "Why is acquisition time different from ingestion time?",
+      "expected": "time",
+      "milliseconds": 22.240999999999985,
+      "ranked": {
+        "bm25": [
+          "time",
+          "rates",
+          "bounded",
+          "coverage",
+          "missing",
+          "snapshot",
+          "repair",
+          "hash",
+          "response",
+          "source"
+        ],
+        "semantic": [
+          "time",
+          "rates",
+          "bounded",
+          "hash",
+          "missing",
+          "source",
+          "repair",
+          "coverage",
+          "response",
+          "snapshot"
+        ],
+        "hybrid": [
+          "time",
+          "rates",
+          "bounded",
+          "missing",
+          "coverage",
+          "hash",
+          "repair",
+          "source",
+          "snapshot",
+          "response"
+        ]
+      }
+    },
+    {
+      "group": "snapshot",
+      "split": "development",
+      "query": "An updated download added an old acquisition. Do I rereview?",
+      "expected": "snapshot",
+      "milliseconds": 31.320200000000114,
+      "ranked": {
+        "bm25": [
+          "rates",
+          "time",
+          "response",
+          "bounded",
+          "coverage",
+          "missing",
+          "hash",
+          "repair",
+          "snapshot",
+          "source"
+        ],
+        "semantic": [
+          "snapshot",
+          "repair",
+          "response",
+          "bounded",
+          "hash",
+          "coverage",
+          "missing",
+          "time",
+          "source",
+          "rates"
+        ],
+        "hybrid": [
+          "response",
+          "bounded",
+          "snapshot",
+          "repair",
+          "time",
+          "rates",
+          "coverage",
+          "hash",
+          "missing",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "snapshot",
+      "split": "development",
+      "query": "How do I know which downloaded dataset was checked?",
+      "expected": "snapshot",
+      "milliseconds": 25.979999999999563,
+      "ranked": {
+        "bm25": [
+          "snapshot",
+          "response",
+          "rates",
+          "bounded",
+          "coverage",
+          "hash",
+          "missing",
+          "repair",
+          "source",
+          "time"
+        ],
+        "semantic": [
+          "snapshot",
+          "bounded",
+          "coverage",
+          "hash",
+          "missing",
+          "time",
+          "response",
+          "source",
+          "rates",
+          "repair"
+        ],
+        "hybrid": [
+          "snapshot",
+          "bounded",
+          "coverage",
+          "response",
+          "hash",
+          "rates",
+          "missing",
+          "time",
+          "source",
+          "repair"
+        ]
+      }
+    },
+    {
+      "group": "snapshot",
+      "split": "development",
+      "query": "What if the provider changes its snapshot tomorrow?",
+      "expected": "snapshot",
+      "milliseconds": 11.267799999999625,
+      "ranked": {
+        "bm25": [
+          "time",
+          "snapshot",
+          "source",
+          "hash",
+          "coverage",
+          "response",
+          "rates",
+          "bounded",
+          "missing",
+          "repair"
+        ],
+        "semantic": [
+          "snapshot",
+          "coverage",
+          "time",
+          "repair",
+          "hash",
+          "source",
+          "bounded",
+          "response",
+          "missing",
+          "rates"
+        ],
+        "hybrid": [
+          "snapshot",
+          "time",
+          "coverage",
+          "source",
+          "hash",
+          "repair",
+          "response",
+          "bounded",
+          "rates",
+          "missing"
+        ]
+      }
+    },
+    {
+      "group": "snapshot",
+      "split": "development",
+      "query": "Keep the archive SHA-256 with the review revision.",
+      "expected": "snapshot",
+      "milliseconds": 33.317800000000716,
+      "ranked": {
+        "bm25": [
+          "snapshot",
+          "response",
+          "time",
+          "missing",
+          "bounded",
+          "hash",
+          "source",
+          "rates",
+          "coverage",
+          "repair"
+        ],
+        "semantic": [
+          "snapshot",
+          "hash",
+          "response",
+          "repair",
+          "coverage",
+          "bounded",
+          "missing",
+          "time",
+          "source",
+          "rates"
+        ],
+        "hybrid": [
+          "snapshot",
+          "response",
+          "hash",
+          "time",
+          "missing",
+          "bounded",
+          "repair",
+          "coverage",
+          "source",
+          "rates"
+        ]
+      }
+    },
+    {
+      "group": "snapshot",
+      "split": "development",
+      "query": "Is this all detections ever or just one dataset version?",
+      "expected": "snapshot",
+      "milliseconds": 52.94380000000092,
+      "ranked": {
+        "bm25": [
+          "bounded",
+          "coverage",
+          "missing",
+          "snapshot",
+          "time",
+          "rates",
+          "source",
+          "response",
+          "repair",
+          "hash"
+        ],
+        "semantic": [
+          "bounded",
+          "coverage",
+          "missing",
+          "snapshot",
+          "hash",
+          "repair",
+          "rates",
+          "response",
+          "time",
+          "source"
+        ],
+        "hybrid": [
+          "bounded",
+          "coverage",
+          "missing",
+          "snapshot",
+          "rates",
+          "time",
+          "hash",
+          "repair",
+          "response",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "snapshot",
+      "split": "development",
+      "query": "How do I compare a newer snapshot with an older packet?",
+      "expected": "snapshot",
+      "milliseconds": 39.92290000000139,
+      "ranked": {
+        "bm25": [
+          "response",
+          "rates",
+          "missing",
+          "hash",
+          "snapshot",
+          "coverage",
+          "repair",
+          "bounded",
+          "time",
+          "source"
+        ],
+        "semantic": [
+          "snapshot",
+          "hash",
+          "coverage",
+          "bounded",
+          "response",
+          "time",
+          "repair",
+          "missing",
+          "source",
+          "rates"
+        ],
+        "hybrid": [
+          "snapshot",
+          "response",
+          "hash",
+          "coverage",
+          "missing",
+          "rates",
+          "bounded",
+          "repair",
+          "time",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "hash",
+      "split": "holdout",
+      "query": "Can I remove an inconvenient record and recompute the hash?",
+      "expected": "hash",
+      "milliseconds": 97.79439999999886,
+      "ranked": {
+        "bm25": [
+          "hash",
+          "response",
+          "missing",
+          "coverage",
+          "time",
+          "rates",
+          "source",
+          "snapshot",
+          "bounded",
+          "repair"
+        ],
+        "semantic": [
+          "hash",
+          "snapshot",
+          "response",
+          "coverage",
+          "missing",
+          "repair",
+          "source",
+          "bounded",
+          "time",
+          "rates"
+        ],
+        "hybrid": [
+          "hash",
+          "response",
+          "missing",
+          "coverage",
+          "snapshot",
+          "time",
+          "source",
+          "repair",
+          "rates",
+          "bounded"
+        ]
+      }
+    },
+    {
+      "group": "hash",
+      "split": "holdout",
+      "query": "Does a blockchain digest prove the science is true?",
+      "expected": "hash",
+      "milliseconds": 10.479299999999057,
+      "ranked": {
+        "bm25": [
+          "hash",
+          "repair",
+          "coverage",
+          "time",
+          "rates",
+          "snapshot",
+          "response",
+          "source",
+          "missing",
+          "bounded"
+        ],
+        "semantic": [
+          "hash",
+          "response",
+          "bounded",
+          "coverage",
+          "repair",
+          "missing",
+          "snapshot",
+          "rates",
+          "time",
+          "source"
+        ],
+        "hybrid": [
+          "hash",
+          "repair",
+          "coverage",
+          "response",
+          "bounded",
+          "time",
+          "rates",
+          "snapshot",
+          "missing",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "hash",
+      "split": "holdout",
+      "query": "How can a valid hash still hide omitted evidence?",
+      "expected": "hash",
+      "milliseconds": 11.716200000002573,
+      "ranked": {
+        "bm25": [
+          "response",
+          "hash",
+          "missing",
+          "repair",
+          "snapshot",
+          "time",
+          "bounded",
+          "rates",
+          "coverage",
+          "source"
+        ],
+        "semantic": [
+          "hash",
+          "response",
+          "missing",
+          "snapshot",
+          "coverage",
+          "bounded",
+          "repair",
+          "time",
+          "source",
+          "rates"
+        ],
+        "hybrid": [
+          "hash",
+          "response",
+          "missing",
+          "snapshot",
+          "repair",
+          "bounded",
+          "coverage",
+          "time",
+          "rates",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "hash",
+      "split": "holdout",
+      "query": "What does replay against the full source archive check?",
+      "expected": "hash",
+      "milliseconds": 7.84320000000298,
+      "ranked": {
+        "bm25": [
+          "hash",
+          "source",
+          "snapshot",
+          "bounded",
+          "coverage",
+          "repair",
+          "time",
+          "response",
+          "rates",
+          "missing"
+        ],
+        "semantic": [
+          "snapshot",
+          "hash",
+          "bounded",
+          "response",
+          "coverage",
+          "repair",
+          "time",
+          "missing",
+          "rates",
+          "source"
+        ],
+        "hybrid": [
+          "hash",
+          "snapshot",
+          "bounded",
+          "coverage",
+          "source",
+          "response",
+          "repair",
+          "time",
+          "missing",
+          "rates"
+        ]
+      }
+    },
+    {
+      "group": "hash",
+      "split": "holdout",
+      "query": "What is the difference between integrity and completeness?",
+      "expected": "hash",
+      "milliseconds": 12.05199999999968,
+      "ranked": {
+        "bm25": [
+          "time",
+          "snapshot",
+          "source",
+          "hash",
+          "rates",
+          "response",
+          "bounded",
+          "repair",
+          "coverage",
+          "missing"
+        ],
+        "semantic": [
+          "hash",
+          "repair",
+          "response",
+          "snapshot",
+          "missing",
+          "coverage",
+          "bounded",
+          "rates",
+          "time",
+          "source"
+        ],
+        "hybrid": [
+          "hash",
+          "snapshot",
+          "response",
+          "time",
+          "repair",
+          "source",
+          "rates",
+          "bounded",
+          "missing",
+          "coverage"
+        ]
+      }
+    },
+    {
+      "group": "hash",
+      "split": "holdout",
+      "query": "Does a ledger commitment certify a methane repair?",
+      "expected": "hash",
+      "milliseconds": 9.002300000000105,
+      "ranked": {
+        "bm25": [
+          "hash",
+          "repair",
+          "rates",
+          "coverage",
+          "missing",
+          "snapshot",
+          "response",
+          "time",
+          "bounded",
+          "source"
+        ],
+        "semantic": [
+          "hash",
+          "repair",
+          "rates",
+          "response",
+          "missing",
+          "coverage",
+          "snapshot",
+          "bounded",
+          "source",
+          "time"
+        ],
+        "hybrid": [
+          "hash",
+          "repair",
+          "rates",
+          "coverage",
+          "missing",
+          "response",
+          "snapshot",
+          "bounded",
+          "time",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "response",
+      "split": "holdout",
+      "query": "I want to withdraw the claim but preserve the observations.",
+      "expected": "response",
+      "milliseconds": 13.352900000001682,
+      "ranked": {
+        "bm25": [
+          "response",
+          "snapshot",
+          "coverage",
+          "repair",
+          "missing",
+          "time",
+          "hash",
+          "source",
+          "rates",
+          "bounded"
+        ],
+        "semantic": [
+          "response",
+          "coverage",
+          "bounded",
+          "hash",
+          "snapshot",
+          "missing",
+          "source",
+          "repair",
+          "rates",
+          "time"
+        ],
+        "hybrid": [
+          "response",
+          "coverage",
+          "snapshot",
+          "hash",
+          "missing",
+          "repair",
+          "bounded",
+          "source",
+          "time",
+          "rates"
+        ]
+      }
+    },
+    {
+      "group": "response",
+      "split": "holdout",
+      "query": "How do I correct an overstrong statement without erasing it?",
+      "expected": "response",
+      "milliseconds": 31.219499999999243,
+      "ranked": {
+        "bm25": [
+          "response",
+          "repair",
+          "rates",
+          "hash",
+          "bounded",
+          "time",
+          "coverage",
+          "missing",
+          "snapshot",
+          "source"
+        ],
+        "semantic": [
+          "response",
+          "repair",
+          "missing",
+          "bounded",
+          "coverage",
+          "hash",
+          "time",
+          "source",
+          "snapshot",
+          "rates"
+        ],
+        "hybrid": [
+          "response",
+          "repair",
+          "bounded",
+          "hash",
+          "missing",
+          "coverage",
+          "rates",
+          "time",
+          "source",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "group": "response",
+      "split": "holdout",
+      "query": "Can a person retain a statement with an explanation?",
+      "expected": "response",
+      "milliseconds": 56.22280000000319,
+      "ranked": {
+        "bm25": [
+          "response",
+          "missing",
+          "hash",
+          "bounded",
+          "repair",
+          "rates",
+          "coverage",
+          "snapshot",
+          "time",
+          "source"
+        ],
+        "semantic": [
+          "response",
+          "missing",
+          "repair",
+          "hash",
+          "bounded",
+          "snapshot",
+          "time",
+          "source",
+          "rates",
+          "coverage"
+        ],
+        "hybrid": [
+          "response",
+          "missing",
+          "hash",
+          "repair",
+          "bounded",
+          "snapshot",
+          "rates",
+          "time",
+          "coverage",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "response",
+      "split": "holdout",
+      "query": "Does an acknowledged review mean emissions stopped?",
+      "expected": "response",
+      "milliseconds": 24.314900000001217,
+      "ranked": {
+        "bm25": [
+          "response",
+          "coverage",
+          "hash",
+          "snapshot",
+          "bounded",
+          "repair",
+          "rates",
+          "missing",
+          "source",
+          "time"
+        ],
+        "semantic": [
+          "response",
+          "coverage",
+          "bounded",
+          "snapshot",
+          "rates",
+          "repair",
+          "missing",
+          "hash",
+          "source",
+          "time"
+        ],
+        "hybrid": [
+          "response",
+          "coverage",
+          "bounded",
+          "snapshot",
+          "hash",
+          "rates",
+          "repair",
+          "missing",
+          "source",
+          "time"
+        ]
+      }
+    },
+    {
+      "group": "response",
+      "split": "holdout",
+      "query": "Keep the original claim visible when I narrow it.",
+      "expected": "response",
+      "milliseconds": 15.00380000000223,
+      "ranked": {
+        "bm25": [
+          "response",
+          "time",
+          "hash",
+          "missing",
+          "repair",
+          "source",
+          "snapshot",
+          "rates",
+          "bounded",
+          "coverage"
+        ],
+        "semantic": [
+          "response",
+          "hash",
+          "snapshot",
+          "repair",
+          "source",
+          "missing",
+          "bounded",
+          "time",
+          "coverage",
+          "rates"
+        ],
+        "hybrid": [
+          "response",
+          "hash",
+          "repair",
+          "time",
+          "snapshot",
+          "missing",
+          "source",
+          "bounded",
+          "rates",
+          "coverage"
+        ]
+      }
+    },
+    {
+      "group": "response",
+      "split": "holdout",
+      "query": "What happens to my explanation in the exported review?",
+      "expected": "response",
+      "milliseconds": 15.855100000000675,
+      "ranked": {
+        "bm25": [
+          "response",
+          "snapshot",
+          "time",
+          "hash",
+          "repair",
+          "rates",
+          "bounded",
+          "source",
+          "coverage",
+          "missing"
+        ],
+        "semantic": [
+          "snapshot",
+          "response",
+          "hash",
+          "repair",
+          "missing",
+          "time",
+          "bounded",
+          "coverage",
+          "source",
+          "rates"
+        ],
+        "hybrid": [
+          "snapshot",
+          "response",
+          "hash",
+          "time",
+          "repair",
+          "bounded",
+          "missing",
+          "rates",
+          "coverage",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "missing",
+      "split": "holdout",
+      "query": "The methane rate is missing. Is that a negative observation?",
+      "expected": "missing",
+      "milliseconds": 32.915499999999156,
+      "ranked": {
+        "bm25": [
+          "rates",
+          "missing",
+          "bounded",
+          "coverage",
+          "hash",
+          "response",
+          "time",
+          "snapshot",
+          "source",
+          "repair"
+        ],
+        "semantic": [
+          "rates",
+          "missing",
+          "coverage",
+          "bounded",
+          "response",
+          "hash",
+          "repair",
+          "snapshot",
+          "source",
+          "time"
+        ],
+        "hybrid": [
+          "rates",
+          "missing",
+          "bounded",
+          "coverage",
+          "hash",
+          "response",
+          "snapshot",
+          "repair",
+          "time",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "missing",
+      "split": "holdout",
+      "query": "Does an unquantified plume still count as a detection?",
+      "expected": "missing",
+      "milliseconds": 16.337600000002567,
+      "ranked": {
+        "bm25": [
+          "missing",
+          "coverage",
+          "repair",
+          "snapshot",
+          "hash",
+          "bounded",
+          "rates",
+          "response",
+          "time",
+          "source"
+        ],
+        "semantic": [
+          "missing",
+          "coverage",
+          "bounded",
+          "response",
+          "rates",
+          "repair",
+          "hash",
+          "snapshot",
+          "source",
+          "time"
+        ],
+        "hybrid": [
+          "missing",
+          "coverage",
+          "bounded",
+          "repair",
+          "snapshot",
+          "response",
+          "rates",
+          "hash",
+          "source",
+          "time"
+        ]
+      }
+    },
+    {
+      "group": "missing",
+      "split": "holdout",
+      "query": "Should I filter out rows with blank uncertainty?",
+      "expected": "missing",
+      "milliseconds": 15.487900000000081,
+      "ranked": {
+        "bm25": [
+          "missing",
+          "source",
+          "rates",
+          "response",
+          "bounded",
+          "coverage",
+          "hash",
+          "repair",
+          "snapshot",
+          "time"
+        ],
+        "semantic": [
+          "missing",
+          "coverage",
+          "bounded",
+          "response",
+          "rates",
+          "repair",
+          "hash",
+          "source",
+          "snapshot",
+          "time"
+        ],
+        "hybrid": [
+          "missing",
+          "coverage",
+          "bounded",
+          "rates",
+          "response",
+          "source",
+          "repair",
+          "hash",
+          "snapshot",
+          "time"
+        ]
+      }
+    },
+    {
+      "group": "missing",
+      "split": "holdout",
+      "query": "A rate cell is empty but the sensor reported a plume.",
+      "expected": "missing",
+      "milliseconds": 8.849000000001979,
+      "ranked": {
+        "bm25": [
+          "missing",
+          "rates",
+          "coverage",
+          "bounded",
+          "time",
+          "snapshot",
+          "hash",
+          "response",
+          "source",
+          "repair"
+        ],
+        "semantic": [
+          "missing",
+          "coverage",
+          "rates",
+          "bounded",
+          "response",
+          "repair",
+          "source",
+          "hash",
+          "time",
+          "snapshot"
+        ],
+        "hybrid": [
+          "missing",
+          "coverage",
+          "rates",
+          "bounded",
+          "response",
+          "time",
+          "hash",
+          "repair",
+          "snapshot",
+          "source"
+        ]
+      }
+    },
+    {
+      "group": "missing",
+      "split": "holdout",
+      "query": "Can I ignore a detection without a numerical flux estimate?",
+      "expected": "missing",
+      "milliseconds": 20.640699999999924,
+      "ranked": {
+        "bm25": [
+          "rates",
+          "missing",
+          "response",
+          "time",
+          "hash",
+          "coverage",
+          "bounded",
+          "repair",
+          "snapshot",
+          "source"
+        ],
+        "semantic": [
+          "missing",
+          "bounded",
+          "coverage",
+          "rates",
+          "response",
+          "hash",
+          "repair",
+          "time",
+          "source",
+          "snapshot"
+        ],
+        "hybrid": [
+          "missing",
+          "rates",
+          "response",
+          "bounded",
+          "coverage",
+          "hash",
+          "time",
+          "repair",
+          "source",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "group": "missing",
+      "split": "holdout",
+      "query": "Missing quantification is different from no detection, right?",
+      "expected": "missing",
+      "milliseconds": 22.72899999999936,
+      "ranked": {
+        "bm25": [
+          "missing",
+          "bounded",
+          "coverage",
+          "rates",
+          "repair",
+          "snapshot",
+          "time",
+          "hash",
+          "response",
+          "source"
+        ],
+        "semantic": [
+          "missing",
+          "bounded",
+          "coverage",
+          "hash",
+          "response",
+          "rates",
+          "repair",
+          "snapshot",
+          "source",
+          "time"
+        ],
+        "hybrid": [
+          "missing",
+          "bounded",
+          "coverage",
+          "rates",
+          "hash",
+          "repair",
+          "response",
+          "snapshot",
+          "time",
+          "source"
+        ]
+      }
+    }
+  ]
+}
