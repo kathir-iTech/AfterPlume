@@ -31,6 +31,8 @@ let actor = 0;
 let requestId = 0;
 const trace: { operation: string; result: string }[] = [];
 const provider: EIP1193Provider = {
+  on:()=>{},
+  removeListener:()=>{},
   request: async ({ method, params }) => {
     const call = async (m: string, p: unknown) => {
       const response = await fetch(config.rpcUrl, {
