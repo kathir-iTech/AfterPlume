@@ -2,6 +2,8 @@
 
 **Check the claim. Keep the evidence. Replay the review.**
 
+**[Open the live evidence desk](https://afterplume.vercel.app)** · [Measured validation](docs/VALIDATION.md) · [Working walkthrough](docs/DEMO.md)
+
 AfterPlume reviews a bounded methane statement against public detection data. It preserves the original claim, includes every matching observation, explains the evidence limits and exports a packet another person can replay. The example uses actual UNEP IMEO MARS records and an explicitly hypothetical statement; it makes no operator allegation.
 
 ## Try the hero flow

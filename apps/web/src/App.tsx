@@ -183,6 +183,7 @@ export default function App() {
   const [chainMessage, setChainMessage] = useState("");
   const worker = useRef<Worker | undefined>(undefined);
   const queryId = useRef(0);
+  const finishedAI=useRef<number|null>(null);
   const zip = useRef<Uint8Array | undefined>(undefined);
   const fileRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -292,7 +293,7 @@ export default function App() {
       worker.current.onmessage = (event: MessageEvent) => {
         const m = event.data;
         if (m.id !== queryId.current) return;
-        if (m.progress) {
+        if (m.progress && finishedAI.current!==m.id) {
           const p = m.progress;
           setAiStatus(
             p.status === "progress"
@@ -301,6 +302,7 @@ export default function App() {
           );
         }
         if (m.result) {
+          finishedAI.current=m.id;
           const result = m.result as LocalAI;
           setAiInfo(result);
           setAssistance({
@@ -317,6 +319,8 @@ export default function App() {
           setAiBusy(false);
         }
         if (m.error) {
+          finishedAI.current=m.id;
+          console.warn('Local embedding inference unavailable:',m.error);
           const ids = lexicalRank(claim.text)
             .slice(0, 3)
             .map((r) => r.id);
@@ -482,6 +486,11 @@ export default function App() {
   }
   const selected = fixture ? selectRecords(claim, fixture.records) : [];
   const latest = fixture?.records.at(-1);
+  const plotStart=new Date('2024-06-01').valueOf();
+  const plotEnd=new Date('2026-07-01').valueOf();
+  const position=(date:string)=>Math.max(8,Math.min(92,8+84*(new Date(date).valueOf()-plotStart)/(plotEnd-plotStart)));
+  const bandStart=position(claim.start);
+  const bandWidth=position(claim.end)-bandStart;
   const complete = packet && packet.payload.response.action !== "pending";
   const guidance = assistance.guidanceIds.length
     ? cards.filter((c) => assistance.guidanceIds.includes(c.id))
@@ -756,7 +765,7 @@ export default function App() {
                 <div className="date-grid">
                   <div>
                     <label className="field-label" htmlFor="start">
-                      Start · included
+                      {claim.kind==='repair_occurred'?'Repair date · included':'Start · included'}
                     </label>
                     <input
                       id="start"
@@ -818,7 +827,7 @@ export default function App() {
                   aria-label="Observation timeline from July 2024 to June 2026"
                 >
                   <div className="chart-grid" />
-                  <div className="interval-band" />
+                  {bandWidth>0&&<div className="interval-band" style={{left:`${bandStart}%`,width:`${bandWidth}%`,right:'auto'}}/>}
                   <div className="chart-axis" />
                   {fixture.records.map((r) => {
                     const start = new Date("2024-06-01").valueOf();

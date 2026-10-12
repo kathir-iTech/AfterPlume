@@ -347,6 +347,7 @@ export async function readKnownSnapshot(
   const files = unzipSync(bytes, {
     filter: (f) =>
       f.originalSize < 30_000_000 &&
+      ['unep_methanedata_detected_plumes.csv','unep_methanedata_detected_sources.csv'].includes(f.name.split('/').at(-1)??'') &&
       !f.name.includes("..") &&
       !f.name.startsWith("/"),
   });

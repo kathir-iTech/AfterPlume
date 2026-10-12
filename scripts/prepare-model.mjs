@@ -56,3 +56,4 @@ await writeFile(
 console.log(
   "Model prepared locally. Runtime query inference is still required.",
 );
+await writeFile(new URL('../apps/web/public/models/LICENSE-APACHE-2.0.txt',import.meta.url),await readFile(new URL('../MODEL_APACHE_LICENSE.txt',import.meta.url)));
