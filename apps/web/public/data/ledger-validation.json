@@ -1,0 +1,107 @@
+{
+  "generated": "2026-10-12T19:01:27.212Z",
+  "scope": "Actual Solidity bytecode and transactions on disposable Hardhat local EVM, chain 31337. Owner and reviewer are two test accounts controlled by this demonstration. No public testnet or independent-user adoption claimed.",
+  "config": {
+    "chainId": 31337,
+    "address": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+    "deploymentSalt": "0x2990d3a798ecbb4f7a6067de704cd159eedc81683a42636ff633f8eec6609435",
+    "rpcUrl": "http://127.0.0.1:8545",
+    "label": "Local development chain — resettable, not a public anchor"
+  },
+  "receipts": [
+    {
+      "chainId": 31337,
+      "contract": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+      "deploymentSalt": "0x2990d3a798ecbb4f7a6067de704cd159eedc81683a42636ff633f8eec6609435",
+      "caseId": "0x1e14906cbc9299f570d527ac4f0298f8c779369d42e5d78c265d721549d89744",
+      "revision": 1,
+      "txHash": "0x53798f997fac8a757e265d20e5a199483c0389da04c62093e1143b53ceeed67a",
+      "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "digest": "0x0a308c8615f0298557a6086ced0bea06352dd59713f469238983158d352d662a"
+    },
+    {
+      "chainId": 31337,
+      "contract": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+      "deploymentSalt": "0x2990d3a798ecbb4f7a6067de704cd159eedc81683a42636ff633f8eec6609435",
+      "caseId": "0x1e14906cbc9299f570d527ac4f0298f8c779369d42e5d78c265d721549d89744",
+      "revision": 2,
+      "txHash": "0x04ebd9131355b7d687dbced5f2699c7a54da58f7fb39082c5055b96ed7747ed9",
+      "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "digest": "0x270e448be17d53fb8859f6dc6ffafc48c58efe705229bc3d49ddc1856f81742b"
+    }
+  ],
+  "trace": [
+    {
+      "operation": "publication-progress",
+      "result": "Confirm the transaction in your wallet."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Transaction submitted; waiting for a successful receipt."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Commitment matches at block 2. Case active; revision 1 current. No current acknowledgement for this packet. Local resettable chain; no durable public anchor."
+    },
+    {
+      "operation": "first-revision",
+      "result": "Successful receipt, bytecode, domain, event, owner and digest verified."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Confirm the ledger action in your wallet."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Waiting for the ledger action receipt."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Confirm the ledger action in your wallet."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Waiting for the ledger action receipt."
+    },
+    {
+      "operation": "reviewer-acknowledgement",
+      "result": "Commitment matches at block 4. Case active; revision 1 current. Current revision acknowledged by an authorized address. Local resettable chain; no durable public anchor."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Confirm the transaction in your wallet."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Transaction submitted; waiting for a successful receipt."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Commitment matches at block 5. Case active; revision 2 current. No current acknowledgement for this packet. Local resettable chain; no durable public anchor."
+    },
+    {
+      "operation": "second-revision",
+      "result": "Commitment matches at block 5. Case active; revision 2 current. No current acknowledgement for this packet. Local resettable chain; no durable public anchor."
+    },
+    {
+      "operation": "old-packet",
+      "result": "Commitment matches at block 5. Case active; revision 1 superseded. No current acknowledgement for this packet. Local resettable chain; no durable public anchor."
+    },
+    {
+      "operation": "rehash-against-existing-commitment",
+      "result": "MISMATCH: edited payload differs from the original external commitment."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Confirm the ledger action in your wallet."
+    },
+    {
+      "operation": "publication-progress",
+      "result": "Waiting for the ledger action receipt."
+    },
+    {
+      "operation": "terminal-withdrawal",
+      "result": "Commitment matches at block 6. Case withdrawn; revision 2 current. No current acknowledgement for this packet. Local resettable chain; no durable public anchor."
+    }
+  ]
+}

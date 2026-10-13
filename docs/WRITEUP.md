@@ -1,8 +1,12 @@
 # AfterPlume
 
-Check the claim. Keep the evidence. Replay the review.
+A report can hide a plume. Replay catches it.
 
 ## What it does
+
+The opening observatory displays all 4,211 provider sources on an interactive world map. An analyst can search by country, source or sector, open any source's timeline and review its actual records. The proof lab runs the entire omission test automatically: replay the original, remove one observation, rebuild the finding and hash, then catch the omission with full-source inclusion. The two downloadable packets make this result inspectable.
+
+Batch mode checks one explicitly hypothetical no-recorded-detections interval across every source. For 1 May 2026 included to 2 June 2026 excluded, 334 sources have matching detections and 3,877 have no matching records. These are reproducible snapshot properties, not allegations about actual operator statements or a national accountability score.
 
 AfterPlume turns a bounded methane statement into an evidence review another person can reproduce. A reviewer selects the exact provider source, date interval and confirmed claim type. The app checks every matching observation, explains what the records establish, keeps the evidence gaps visible and preserves the original statement alongside a human correction, explanation or withdrawal.
 

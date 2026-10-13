@@ -4,6 +4,12 @@
   "outputDirectory": "apps/web/dist",
   "installCommand": "ONNXRUNTIME_NODE_INSTALL=skip npm ci",
   "framework": "vite",
+  "rewrites": [
+    { "source": "/proof", "destination": "/index.html" },
+    { "source": "/review", "destination": "/index.html" },
+    { "source": "/verify", "destination": "/index.html" },
+    { "source": "/method", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

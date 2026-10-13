@@ -2,6 +2,14 @@
 
 Reports are generated from actual executions. They are prototype engineering measurements, not independent scientific validation or user outcomes.
 
+Two timeline rendering regressions additionally check that a missing rate is displayed on a labelled unquantified rail rather than as zero, while an explicitly reported zero remains a recorded quantified observation. The full unit suite now contains 55 tests: 53 evidence/packet tests and these two rendering checks.
+
+The observatory update passed nine browser stories locally: original review/export/replay, mobile bounded result, real semantic inference, exporting a correctly sized PNG result card, opening a second country's source with separate revisions, actual guided omission replay, all-source CSV export, immediate keyword confirmation during cold model loading, and mobile/reduced-motion operation. `npm run test:e2e` reproduces these checks.
+
+Full-catalogue batch: 4,211 sources evaluated for 2026-05-01 included to 2026-06-02 excluded; 334 have matching detection records and 3,877 do not. `npm run evaluate:batch` verifies catalogue counts against the original archive and retains all rows in `evaluation/results/batch.json`. These are hypothetical interval checks, not claims made by operators.
+
+The browser timing row below records the earlier semantic-only UI benchmark. The current UI offers immediate keyword suggestions during semantic loading; that earlier cold delay is not a required wait before a user can run a review.
+
 | Check                                  | Observed result                                                                                                   | Reproduce                                             |
 | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | Evidence and packet suite              | 53 passing tests                                                                                                  | `npm test`                                            |

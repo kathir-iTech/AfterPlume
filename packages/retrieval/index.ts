@@ -81,6 +81,13 @@ export const templates: { kind: Claim["kind"]; text: string }[] = [
 ];
 const words = (s: string): string[] =>
   s.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+export function suggestLexicalKind(query: string): Claim['kind'] {
+  const q = query.toLowerCase();
+  if (/percent|percentage|\d\s*%|reduc|decreas|baseline/.test(q)) return 'reduction_percent';
+  if (/repair|fix|work order/.test(q)) return 'repair_occurred';
+  if (/zero emission|ceased|cessation|stopped|no emission|emission.free/.test(q)) return 'zero_emissions';
+  return 'no_detections';
+}
 export function lexicalRank(query: string): { id: string; score: number }[] {
   const docs = cards.map((c) => words(c.title + " " + c.text));
   const q = [...new Set(words(query))];

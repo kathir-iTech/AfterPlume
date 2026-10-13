@@ -31,7 +31,8 @@
     "chain:local": "hardhat node --config contracts/hardhat.config.ts",
     "chain:deploy": "hardhat run contracts/scripts/deploy.ts --config contracts/hardhat.config.ts --network localhost",
     "test:e2e": "playwright test",
-    "check": "npm run typecheck && npm test && npm run contracts:test && npm run build"
+    "check": "npm run typecheck && npm test && npm run contracts:test && npm run build",
+    "evaluate:batch": "tsx scripts/batch-evaluate.ts"
   },
   "dependencies": {
     "@huggingface/transformers": "4.3.1",

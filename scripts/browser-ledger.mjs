@@ -43,7 +43,9 @@ await page.addInitScript(
   },
   { rpc },
 );
-await page.goto(process.env.BASE_URL ?? "http://127.0.0.1:5173");
+await page.goto(
+  new URL("/review", process.env.BASE_URL ?? "http://127.0.0.1:5173").href,
+);
 await page.getByRole("button", { name: "Run evidence check" }).click();
 await page.getByText("Correct or narrow", { exact: true }).click();
 await page

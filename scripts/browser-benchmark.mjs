@@ -9,7 +9,9 @@ const context = await browser.newContext({
 const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
-await page.goto(process.env.BASE_URL ?? "http://127.0.0.1:5173");
+await page.goto(
+  new URL("/review", process.env.BASE_URL ?? "http://127.0.0.1:5173").href,
+);
 await page.getByRole("heading", { name: "Bound the statement" }).waitFor();
 const coldStarted = performance.now();
 await page

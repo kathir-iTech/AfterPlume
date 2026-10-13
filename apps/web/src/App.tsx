@@ -1,26 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowDownToLine,
   ArrowRight,
   ArrowUpRight,
   Check,
-  ChevronDown,
   ChevronRight,
-  Clock3,
-  Copy,
   FileCheck2,
   FileJson,
   FlaskConical,
-  GitBranch,
   Globe2,
   Info,
-  Layers3,
   LoaderCircle,
-  LockKeyhole,
-  Plus,
-  Search,
   ShieldCheck,
-  Sparkles,
   TriangleAlert,
   Upload,
   X,
@@ -35,10 +25,12 @@ import {
   type Claim,
   type HumanResponse,
   type Packet,
-  type PlumeRecord,
-  type SnapshotManifest,
 } from "../../../packages/core/index.ts";
-import { cards, lexicalRank } from "../../../packages/retrieval/index.ts";
+import {
+  cards,
+  lexicalRank,
+  suggestLexicalKind,
+} from "../../../packages/retrieval/index.ts";
 import {
   verifyPacket,
   type Verification,
@@ -51,19 +43,16 @@ import {
 import type { EIP1193Provider } from "viem";
 import LedgerPanel from "./LedgerPanel.tsx";
 
-type Fixture = {
-  manifest: SnapshotManifest;
-  sources: Record<string, string>[];
-  records: PlumeRecord[];
-};
-type Assistance = Packet["payload"]["assistance"];
-type LocalAI = {
-  engine: "semantic-local";
-  guidanceIds: string[];
-  suggestedKind: Claim["kind"];
-  milliseconds: number;
-  dimensions: number;
-};
+import Observatory from "./Observatory.tsx";
+import ProofTour from "./ProofTour.tsx";
+import ReviewDesk from "./ReviewDesk.tsx";
+import { CheckRow } from "./Checks.tsx";
+import { type Fixture, type Assistance, type LocalAI } from "./ui-data.ts";
+import MethodView from "./MethodView.tsx";
+import LedgerEvidence from "./LedgerEvidence.tsx";
+import useSnapshot from "./useSnapshot.ts";
+import type { Source, SourceIndex } from "./explorer-types.ts";
+
 const initialClaim: Claim = {
   text: "No methane detections were recorded for source AZE_S_010 between 1 May and 1 June 2026 inclusive.",
   kind: "no_detections",
@@ -86,78 +75,15 @@ const none: Assistance = {
   confirmedByHuman: true,
   guidanceIds: [],
 };
-const titles: Record<Claim["kind"], string> = {
-  no_detections: "No recorded detections",
-  repair_occurred: "Repair occurred on a date",
-  zero_emissions: "Zero emissions / cessation",
-  reduction_percent: "Measured percentage reduction",
-};
-const findingTitle = {
-  DETECTION_RECORDED: "Detection recorded",
-  NO_MATCHING_DETECTIONS_IN_SNAPSHOT: "No matching records",
-  INSUFFICIENT_OR_INCOMPATIBLE: "More evidence needed",
-  INVALID_INPUT: "Check the claim inputs",
-};
-function download(packet: Packet) {
-  const blob = new Blob([JSON.stringify(packet, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `afterplume-${packet.payload.claim.sourceId}-r${packet.payload.revision}.json`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+function routeTab(): "explore" | "proof" | "review" | "verify" | "method" {
+  const route = location.pathname.slice(1);
+  return ["proof", "review", "verify", "method"].includes(route)
+    ? (route as "proof" | "review" | "verify" | "method")
+    : "explore";
 }
-const short = (s: string) => s.slice(0, 8) + "…" + s.slice(-6);
-function Pill({
-  children,
-  tone = "neutral",
-}: {
-  children: React.ReactNode;
-  tone?: string;
-}) {
-  return <span className={"pill " + tone}>{children}</span>;
+function historyPush(path: string) {
+  window.history.pushState(null, "", path);
 }
-function CheckRow({
-  label,
-  check,
-}: {
-  label: string;
-  check: Verification["integrity"];
-}) {
-  return (
-    <div className={"verification-check " + check.status.toLowerCase()}>
-      <span className="check-icon">
-        {check.status === "MATCH" ? (
-          <Check size={19} />
-        ) : check.status === "MISMATCH" ? (
-          <X size={19} />
-        ) : (
-          <Info size={19} />
-        )}
-      </span>
-      <div>
-        <h3>
-          {label}
-          <Pill
-            tone={
-              check.status === "MATCH"
-                ? "teal"
-                : check.status === "MISMATCH"
-                  ? "red"
-                  : "amber"
-            }
-          >
-            {check.status.replaceAll("_", " ")}
-          </Pill>
-        </h3>
-        <p>{check.detail}</p>
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   const [fixture, setFixture] = useState<Fixture>();
   const [fatal, setFatal] = useState("");
@@ -165,7 +91,12 @@ export default function App() {
   const [packet, setPacket] = useState<Packet>();
   const [history, setHistory] = useState<Packet[]>([]);
   const [response, setResponse] = useState<HumanResponse>(emptyResponse);
-  const [tab, setTab] = useState<"review" | "verify" | "method">("review");
+  const [tab, setTab] = useState<
+    "explore" | "proof" | "review" | "verify" | "method"
+  >(() => routeTab());
+  const [index, setIndex] = useState<SourceIndex>();
+  const [showLedgerEvidence, setShowLedgerEvidence] = useState(false);
+  const snapshot = useSnapshot();
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -183,9 +114,91 @@ export default function App() {
   const [chainMessage, setChainMessage] = useState("");
   const worker = useRef<Worker | undefined>(undefined);
   const queryId = useRef(0);
-  const finishedAI=useRef<number|null>(null);
+  const finishedAI = useRef<number | null>(null);
   const zip = useRef<Uint8Array | undefined>(undefined);
   const fileRef = useRef<HTMLInputElement>(null);
+  const sourceRequest = useRef(0);
+  function navigate(value: typeof tab) {
+    setTab(value);
+    setError("");
+    setNotice("");
+    historyPush(value === "explore" ? "/" : `/${value}`);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+  useEffect(() => {
+    const pop = () => {
+      setTab(routeTab());
+      setError("");
+    };
+    window.addEventListener("popstate", pop);
+    return () => window.removeEventListener("popstate", pop);
+  }, []);
+  useEffect(() => {
+    let live = true;
+    fetch("/data/source-index.json")
+      .then((r) => {
+        if (!r.ok) throw new Error("Source catalogue unavailable.");
+        return r.json();
+      })
+      .then((d) => {
+        if (live) setIndex(d);
+      })
+      .catch((e) => {
+        if (live) setError(e.message);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+  async function openSource(source: Source, start?: string, end?: string) {
+    const request = ++sourceRequest.current;
+    setBusy("source");
+    setError("");
+    try {
+      const records = await snapshot.sourceRecords(source.id);
+      if (request !== sourceRequest.current) return;
+      const nextStart =
+        start ??
+        (source.id === initialClaim.sourceId
+          ? initialClaim.start
+          : source.latest || initialClaim.start);
+      const nextEnd =
+        end ??
+        (source.id === initialClaim.sourceId
+          ? initialClaim.end
+          : new Date(Date.parse(nextStart) + 86400000)
+              .toISOString()
+              .slice(0, 10));
+      setFixture({
+        manifest: index?.manifest ?? fixture!.manifest,
+        sources: [
+          {
+            source_name: source.id,
+            country: source.country,
+            sector: source.sector,
+            lat: source.lat,
+            lon: source.lon,
+          },
+        ],
+        records,
+      });
+      changeClaim({
+        sourceId: source.id,
+        start: nextStart,
+        end: nextEnd,
+        text: `No methane detections were recorded for source ${source.id} from ${nextStart} included to ${nextEnd} excluded.`,
+        kind: "no_detections",
+      });
+      navigate("review");
+    } catch (e) {
+      if (request === sourceRequest.current)
+        setError(
+          e instanceof Error ? e.message : "Source could not be opened.",
+        );
+    } finally {
+      if (request === sourceRequest.current) setBusy("");
+    }
+  }
   useEffect(() => {
     let live = true;
     fetch("/data/case.json")
@@ -256,7 +269,28 @@ export default function App() {
     setError("");
     setBusy("review");
     try {
-      const previous = history.at(-1);
+      let records = fixture.records;
+      if (fixture.sources[0]?.source_name !== claim.sourceId) {
+        records = await snapshot.sourceRecords(claim.sourceId);
+        const source = index?.sources.find((s) => s.id === claim.sourceId);
+        if (source)
+          setFixture({
+            manifest: fixture.manifest,
+            sources: [
+              {
+                source_name: source.id,
+                country: source.country,
+                sector: source.sector,
+                lat: source.lat,
+                lon: source.lon,
+              },
+            ],
+            records,
+          });
+      }
+      const previous = history
+        .filter((p) => p.payload.claim.sourceId === claim.sourceId)
+        .at(-1);
       const created = await createPacket(
         {
           revision: (previous?.payload.revision ?? 0) + 1,
@@ -267,8 +301,10 @@ export default function App() {
           response: emptyResponse,
           assistance,
         },
-        fixture.records,
-        fixture.sources.some((s) => s.source_name === claim.sourceId),
+        records,
+        index
+          ? index.sources.some((s) => s.id === claim.sourceId)
+          : fixture.sources.some((s) => s.source_name === claim.sourceId),
       );
       setPacket(created);
       setResponse(emptyResponse);
@@ -280,9 +316,18 @@ export default function App() {
     }
   }
   function requestAI() {
+    setAssistance({
+      ...none,
+      engine: "lexical",
+      suggestedKind: suggestLexicalKind(claim.text),
+      confirmedByHuman: false,
+      guidanceIds: lexicalRank(claim.text)
+        .slice(0, 3)
+        .map((r) => r.id),
+    });
     setAiBusy(true);
     setAiStatus(
-      "Loading the local model. First use downloads model files; your claim stays in this browser.",
+      "Instant keyword suggestion ready. Local semantics loads in the background; you can confirm now.",
     );
     setError("");
     const id = ++queryId.current;
@@ -293,7 +338,7 @@ export default function App() {
       worker.current.onmessage = (event: MessageEvent) => {
         const m = event.data;
         if (m.id !== queryId.current) return;
-        if (m.progress && finishedAI.current!==m.id) {
+        if (m.progress && finishedAI.current !== m.id) {
           const p = m.progress;
           setAiStatus(
             p.status === "progress"
@@ -302,25 +347,29 @@ export default function App() {
           );
         }
         if (m.result) {
-          finishedAI.current=m.id;
+          finishedAI.current = m.id;
           const result = m.result as LocalAI;
           setAiInfo(result);
-          setAssistance({
-            engine: "semantic-local",
-            model: MODEL.id,
-            modelRevision: MODEL.revision,
-            suggestedKind: result.suggestedKind,
-            confirmedByHuman: false,
-            guidanceIds: result.guidanceIds,
-          });
+          setAssistance((previous) =>
+            previous.confirmedByHuman
+              ? previous
+              : {
+                  engine: "semantic-local",
+                  model: MODEL.id,
+                  modelRevision: MODEL.revision,
+                  suggestedKind: result.suggestedKind,
+                  confirmedByHuman: false,
+                  guidanceIds: result.guidanceIds,
+                },
+          );
           setAiStatus(
             `384-dimensional embeddings computed locally · ${Math.round(result.milliseconds)} ms warm query inference`,
           );
           setAiBusy(false);
         }
         if (m.error) {
-          finishedAI.current=m.id;
-          console.warn('Local embedding inference unavailable:',m.error);
+          finishedAI.current = m.id;
+          console.warn("Local embedding inference unavailable:", m.error);
           const ids = lexicalRank(claim.text)
             .slice(0, 3)
             .map((r) => r.id);
@@ -380,7 +429,11 @@ export default function App() {
     };
     setPacket(completed);
     setHistory((h) => [
-      ...h.filter((p) => p.payload.revision !== completed.payload.revision),
+      ...h.filter(
+        (p) =>
+          p.payload.revision !== completed.payload.revision ||
+          p.payload.claim.sourceId !== completed.payload.claim.sourceId,
+      ),
       completed,
     ]);
     setNotice("Review completed. Physical mitigation remains unassessed.");
@@ -440,6 +493,17 @@ export default function App() {
   }
   async function loadLedger() {
     setError("");
+    if (!["localhost", "127.0.0.1"].includes(location.hostname)) {
+      setShowLedgerEvidence(true);
+      setTimeout(
+        () =>
+          document
+            .querySelector(".ledger-evidence")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        0,
+      );
+      return;
+    }
     try {
       const r = await fetch("/ledger/local.json");
       if (!r.ok)
@@ -450,7 +514,7 @@ export default function App() {
       setLedger(config);
       setShowLedger(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Ledger unavailable.");
+      setShowLedgerEvidence(true);
     }
   }
   async function publish() {
@@ -465,7 +529,13 @@ export default function App() {
           "A browser wallet is needed only for publishing. Install or enable an EVM wallet, then connect to the configured test network.",
         );
       const lastReceipt =
-        [...history].reverse().find((p) => p.receipt)?.receipt ?? null;
+        [...history]
+          .reverse()
+          .find(
+            (p) =>
+              p.receipt &&
+              p.payload.claim.sourceId === packet.payload.claim.sourceId,
+          )?.receipt ?? null;
       const receipt = await publishPacket(
         packet,
         ledger,
@@ -486,11 +556,6 @@ export default function App() {
   }
   const selected = fixture ? selectRecords(claim, fixture.records) : [];
   const latest = fixture?.records.at(-1);
-  const plotStart=new Date('2024-06-01').valueOf();
-  const plotEnd=new Date('2026-07-01').valueOf();
-  const position=(date:string)=>Math.max(8,Math.min(92,8+84*(new Date(date).valueOf()-plotStart)/(plotEnd-plotStart)));
-  const bandStart=position(claim.start);
-  const bandWidth=position(claim.end)-bandStart;
   const complete = packet && packet.payload.response.action !== "pending";
   const guidance = assistance.guidanceIds.length
     ? cards.filter((c) => assistance.guidanceIds.includes(c.id))
@@ -519,7 +584,7 @@ export default function App() {
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            setTab("review");
+            navigate("explore");
           }}
         >
           <span className="brand-mark">
@@ -527,11 +592,13 @@ export default function App() {
           </span>
           AfterPlume
           <span className="brand-divider" />
-          <span className="brand-caption">EVIDENCE DESK</span>
+          <span className="brand-caption">EVIDENCE OBSERVATORY</span>
         </a>
         <nav aria-label="Main navigation">
           {(
             [
+              ["explore", "Explore"],
+              ["proof", "Proof lab"],
               ["review", "Review desk"],
               ["verify", "Verify a packet"],
               ["method", "Method & limits"],
@@ -541,7 +608,7 @@ export default function App() {
               key={value}
               className={tab === value ? "nav active" : "nav"}
               onClick={() => {
-                setTab(value);
+                navigate(value);
                 setError("");
               }}
             >
@@ -563,11 +630,15 @@ export default function App() {
           <Globe2 size={14} /> Public methane evidence{" "}
           <ChevronRight size={13} />
           <span>
-            {tab === "review"
-              ? "Source review"
-              : tab === "verify"
-                ? "Independent replay"
-                : "Method & limits"}
+            {tab === "explore"
+              ? "Source explorer"
+              : tab === "proof"
+                ? "Proof lab"
+                : tab === "review"
+                  ? "Source review"
+                  : tab === "verify"
+                    ? "Independent replay"
+                    : "Method & limits"}
           </span>
           <span className="snapshot-tag">
             <span className="dot" /> Snapshot · 12 OCT 2026
@@ -599,688 +670,74 @@ export default function App() {
             </button>
           </div>
         )}
+        {tab === "explore" && (
+          <Observatory
+            index={index}
+            openSource={(source, start, end) =>
+              void openSource(source, start, end)
+            }
+            watchProof={() => navigate("proof")}
+            runBatch={snapshot.batch}
+            busy={busy === "source"}
+          />
+        )}
+        {tab === "proof" && (
+          <ProofTour
+            getZip={getZip}
+            openReview={() => {
+              const source = index?.sources.find(
+                (s) => s.id === initialClaim.sourceId,
+              );
+              if (source) void openSource(source);
+              else navigate("review");
+            }}
+            openLedger={() => {
+              setShowLedgerEvidence(true);
+              setTimeout(
+                () =>
+                  document
+                    .querySelector(".ledger-evidence")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                0,
+              );
+            }}
+          />
+        )}
         {tab === "review" && (
-          <>
-            <section className="page-heading">
-              <div>
-                <p className="eyebrow">
-                  FROM A STATEMENT TO A CHECKABLE REVIEW
-                </p>
-                <h1>
-                  Check the claim.
-                  <br />
-                  <span>Keep the evidence.</span>
-                </h1>
-                <p className="intro">
-                  A detection is a record. A repair is a different claim.
-                  <br className="desktop-break" /> Make the distinction
-                  visible—and let someone else replay it.
-                </p>
-              </div>
-              <div className="heading-actions">
-                <button
-                  className="button secondary"
-                  onClick={() => setShowHistory(!showHistory)}
-                >
-                  <GitBranch size={16} /> Review history{" "}
-                  <span className="count">{history.length}</span>
-                </button>
-                <button
-                  className="button primary"
-                  disabled={!packet}
-                  onClick={() => packet && download(packet)}
-                >
-                  <ArrowDownToLine size={16} /> Export review
-                </button>
-                <p>
-                  <LockKeyhole size={12} /> No account or wallet needed
-                </p>
-              </div>
-            </section>
-            <div className="demo-notice">
-              <FlaskConical size={17} />
-              <div>
-                <strong>Real observations. Hypothetical statement.</strong>
-                <span>
-                  {" "}
-                  This example makes no allegation about an operator. Source
-                  assignment is provided by UNEP.
-                </span>
-              </div>
-              <Pill>WORKING EXAMPLE</Pill>
-            </div>
-            <section className="source-summary">
-              <div className="source-symbol">
-                <Layers3 size={25} />
-              </div>
-              <div>
-                <p className="eyebrow">PROVIDER SOURCE</p>
-                <h2>
-                  {claim.sourceId} <Pill>Oil & gas</Pill>
-                </h2>
-                <span>Azerbaijan · UNEP IMEO MARS</span>
-              </div>
-              <div className="source-stat">
-                <span>Recorded observations</span>
-                <strong>
-                  {fixture.records.length}
-                  <small>in this snapshot</small>
-                </strong>
-              </div>
-              <div className="source-stat">
-                <span>Latest acquisition</span>
-                <strong>
-                  {latest?.acquired.slice(0, 10)}
-                  <small>provider calendar date</small>
-                </strong>
-              </div>
-              <div className="source-coordinate">
-                <Globe2 size={15} />
-                <span>
-                  {Number(fixture.sources[0]?.lat).toFixed(4)}° N<br />
-                  {Number(fixture.sources[0]?.lon).toFixed(4)}° E
-                </span>
-              </div>
-            </section>
-            <div className="desk-grid">
-              <section className="panel claim-panel">
-                <div className="panel-heading">
-                  <span className="step">01</span>
-                  <h2>Bound the statement</h2>
-                </div>
-                <label className="field-label" htmlFor="claim-text">
-                  Statement to review
-                </label>
-                <textarea
-                  id="claim-text"
-                  maxLength={3000}
-                  value={claim.text}
-                  onChange={(e) => changeClaim({ text: e.target.value })}
-                />
-                <div className="field-help">
-                  <FlaskConical size={13} /> Hypothetical example statement
-                </div>
-                <button
-                  className="assist-button"
-                  onClick={requestAI}
-                  disabled={aiBusy}
-                >
-                  <Sparkles size={15} />
-                  {aiBusy
-                    ? "Preparing local assistance…"
-                    : "Suggest a claim type locally"}
-                  {!aiBusy && <ArrowRight size={14} />}
-                </button>
-                {aiBusy && (
-                  <button className="text-button" onClick={cancelAI}>
-                    Cancel loading
-                  </button>
-                )}
-                {aiStatus && (
-                  <p className="ai-status" role="status">
-                    {aiStatus}
-                  </p>
-                )}
-                {aiInfo && !assistance.confirmedByHuman && (
-                  <div className="suggestion">
-                    <Sparkles size={16} />
-                    <p>
-                      Suggested type
-                      <br />
-                      <strong>{titles[aiInfo.suggestedKind]}</strong>
-                    </p>
-                    <button onClick={confirmSuggestion}>Confirm</button>
-                  </div>
-                )}
-                <label className="field-label" htmlFor="claim-kind">
-                  Confirmed claim type
-                </label>
-                <div className="select-wrap">
-                  <select
-                    id="claim-kind"
-                    value={claim.kind}
-                    onChange={(e) =>
-                      changeClaim({ kind: e.target.value as Claim["kind"] })
-                    }
-                  >
-                    {Object.entries(titles).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={16} />
-                </div>
-                <p className="field-help">
-                  You choose the type. AI never decides the finding.
-                </p>
-                <label className="field-label" htmlFor="source-id">
-                  Exact provider source ID
-                </label>
-                <input
-                  id="source-id"
-                  value={claim.sourceId}
-                  onChange={(e) => changeClaim({ sourceId: e.target.value })}
-                />
-                <div className="date-grid">
-                  <div>
-                    <label className="field-label" htmlFor="start">
-                      {claim.kind==='repair_occurred'?'Repair date · included':'Start · included'}
-                    </label>
-                    <input
-                      id="start"
-                      type="date"
-                      value={claim.start}
-                      onChange={(e) => changeClaim({ start: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="field-label" htmlFor="end">
-                      End · excluded
-                    </label>
-                    <input
-                      id="end"
-                      type="date"
-                      value={claim.end}
-                      onChange={(e) => changeClaim({ end: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <p className="calendar-note">
-                  <Clock3 size={13} /> Provider calendar dates. No timezone
-                  conversion.
-                </p>
-                <button
-                  className="button primary full"
-                  disabled={!!busy || !assistance.confirmedByHuman}
-                  onClick={runReview}
-                >
-                  {busy === "review" ? (
-                    <LoaderCircle className="spin" size={17} />
-                  ) : (
-                    <Search size={17} />
-                  )}{" "}
-                  Run evidence check <ArrowRight size={15} />
-                </button>
-                {!assistance.confirmedByHuman && (
-                  <button
-                    className="text-button"
-                    onClick={() =>
-                      setAssistance((a) => ({ ...a, confirmedByHuman: true }))
-                    }
-                  >
-                    Keep my selected type
-                  </button>
-                )}
-              </section>
-              <section className="panel evidence-panel">
-                <div className="panel-heading">
-                  <span className="step">02</span>
-                  <h2>Follow the observations</h2>
-                  <Pill>{selected.length} IN INTERVAL</Pill>
-                </div>
-                <div className="evidence-caption">
-                  <span className="small-dot red" /> Selected interval
-                </div>
-                <div
-                  className="timeline-chart"
-                  aria-label="Observation timeline from July 2024 to June 2026"
-                >
-                  <div className="chart-grid" />
-                  {bandWidth>0&&<div className="interval-band" style={{left:`${bandStart}%`,width:`${bandWidth}%`,right:'auto'}}/>}
-                  <div className="chart-axis" />
-                  {fixture.records.map((r) => {
-                    const start = new Date("2024-06-01").valueOf();
-                    const end = new Date("2026-07-01").valueOf();
-                    const x =
-                      8 +
-                      (84 *
-                        (new Date(r.acquired.slice(0, 10)).valueOf() - start)) /
-                        (end - start);
-                    const match = selected.some((s) => s.id === r.id);
-                    return (
-                      <button
-                        key={r.id}
-                        className={"plume-dot " + (match ? "selected" : "")}
-                        style={{
-                          left: `${x}%`,
-                          bottom: `${26 + (Math.min(Number(r.rate) || 200, 4500) / 4500) * 62}%`,
-                        }}
-                        title={`${r.acquired.slice(0, 10)} · ${r.rate || "unquantified"} kg/h`}
-                        aria-label={`View ${r.acquired.slice(0, 10)} ${r.satellite} record`}
-                        onClick={() =>
-                          setExpanded(expanded === r.id ? undefined : r.id)
-                        }
-                      />
-                    );
-                  })}
-                  <span className="chart-label start">JUL 2024</span>
-                  <span className="chart-label mid">JUN 2025</span>
-                  <span className="chart-label end">JUN 2026</span>
-                  <span className="chart-unit">
-                    kg/h · instantaneous estimate
-                  </span>
-                </div>
-                <div className="records-title">
-                  <h3>Detection records</h3>
-                  <span>All sensors · source assigned</span>
-                </div>
-                <div className="record-list">
-                  {fixture.records.map((r) => {
-                    const match = selected.some((s) => s.id === r.id);
-                    return (
-                      <div
-                        key={r.id}
-                        className={
-                          "record-item " + (match ? "in-interval" : "")
-                        }
-                      >
-                        <button
-                          className="record-summary"
-                          onClick={() =>
-                            setExpanded(expanded === r.id ? undefined : r.id)
-                          }
-                          aria-expanded={expanded === r.id}
-                        >
-                          <span
-                            className={"record-dot " + (match ? "red" : "")}
-                          />
-                          <span className="record-date">
-                            {r.acquired.slice(0, 10)}
-                            <small>{r.satellite.split(" - ")[0]}</small>
-                          </span>
-                          <span className="record-rate">
-                            {r.rate
-                              ? Number(r.rate).toLocaleString("en-US")
-                              : "Not quantified"}
-                            <small>
-                              {r.rate ? "kg/h" : "positive detection"}
-                            </small>
-                          </span>
-                          <ChevronDown size={14} />
-                        </button>
-                        {expanded === r.id && (
-                          <div className="record-detail">
-                            <dl>
-                              <dt>Provider UUID</dt>
-                              <dd>{r.id}</dd>
-                              <dt>Original acquisition string</dt>
-                              <dd>{r.acquired}</dd>
-                              <dt>Reported standard deviation</dt>
-                              <dd>
-                                {r.std ? `${r.std} kg/h` : "Not reported"}
-                              </dd>
-                              <dt>Detection institution</dt>
-                              <dd>{r.raw.detection_institution}</dd>
-                              <dt>Source assignment</dt>
-                              <dd>{r.sourceId}</dd>
-                            </dl>
-                            <a
-                              href="https://methanedata.unep.org/dict-mars-plumes"
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Field definitions <ArrowUpRight size={12} />
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="evidence-footnote">
-                  <Info size={15} />
-                  <p>
-                    Rates are instantaneous estimates. A record without a rate
-                    still counts as a detection.
-                  </p>
-                </div>
-              </section>
-              <section className="panel finding-panel">
-                <div className="panel-heading">
-                  <span className="step">03</span>
-                  <h2>Review the finding</h2>
-                </div>
-                {packet ? (
-                  <>
-                    <div
-                      className={
-                        "finding-box " +
-                        (packet.payload.finding.status === "DETECTION_RECORDED"
-                          ? "conflict"
-                          : "caution")
-                      }
-                    >
-                      <div className="finding-icon">
-                        <TriangleAlert size={23} />
-                      </div>
-                      <p className="eyebrow">EVIDENCE FINDING</p>
-                      <h3>{findingTitle[packet.payload.finding.status]}</h3>
-                      <p>{packet.payload.finding.reason}</p>
-                      <Pill
-                        tone={
-                          packet.payload.finding.status === "DETECTION_RECORDED"
-                            ? "red"
-                            : "amber"
-                        }
-                      >
-                        {packet.payload.records.length} matching record
-                        {packet.payload.records.length === 1 ? "" : "s"}
-                      </Pill>
-                    </div>
-                    <div className="status-row">
-                      <span>Review status</span>
-                      <strong>
-                        {complete ? "Completed" : "Awaiting your response"}
-                      </strong>
-                    </div>
-                    <div className="status-row">
-                      <span>Physical mitigation</span>
-                      <Pill tone="amber">Not assessed</Pill>
-                    </div>
-                    <div className="status-row">
-                      <span>Observation coverage</span>
-                      <strong>Insufficient for cessation</strong>
-                    </div>
-                    <div className="policy-stamp">
-                      <FileCheck2 size={15} />
-                      <span>
-                        Deterministic policy · v1.0.0
-                        <br />
-                        <small>All source-matching records checked</small>
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="finding-empty">
-                    <FileCheck2 size={37} strokeWidth={1.2} />
-                    <h3>The evidence gets a say.</h3>
-                    <p>
-                      Run the check to see what these records establish—and what
-                      they leave open.
-                    </p>
-                  </div>
-                )}
-                <div className="limits-note">
-                  <Info size={16} />
-                  <div>
-                    <strong>Keep this limit visible</strong>
-                    <p>
-                      No matching records is not proof of zero emissions. The
-                      snapshot has no complete negative-observation history.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  className="text-button"
-                  onClick={() => setTab("method")}
-                >
-                  Read the method & limitations <ArrowUpRight size={13} />
-                </button>
-              </section>
-            </div>
-            {packet && (
-              <section className="panel response-panel">
-                <div className="response-heading">
-                  <div className="panel-heading">
-                    <span className="step">04</span>
-                    <h2>Respond to the evidence</h2>
-                  </div>
-                  <Pill tone={complete ? "teal" : "neutral"}>
-                    {complete ? "REVIEW COMPLETED" : "HUMAN DECISION"}
-                  </Pill>
-                </div>
-                {complete ? (
-                  <div className="completed-response">
-                    <Check size={20} />
-                    <div>
-                      <strong>
-                        {packet.payload.response.action === "correct"
-                          ? "Statement corrected or narrowed"
-                          : packet.payload.response.action === "withdraw"
-                            ? "Statement withdrawn"
-                            : "Statement retained with explanation"}
-                      </strong>
-                      <p>{packet.payload.response.explanation}</p>
-                      {packet.payload.response.revisedText && (
-                        <blockquote>
-                          {packet.payload.response.revisedText}
-                        </blockquote>
-                      )}
-                      <span className="field-help">
-                        Original statement and conflicting evidence remain in
-                        the packet.
-                      </span>
-                    </div>
-                    <button className="button secondary" onClick={runReview}>
-                      <Plus size={15} /> Start next revision
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="response-options">
-                      {(
-                        [
-                          [
-                            "correct",
-                            "Correct or narrow",
-                            "Keep only what the evidence supports.",
-                          ],
-                          [
-                            "retain",
-                            "Retain with explanation",
-                            "Preserve the conflict and explain your reasoning.",
-                          ],
-                          [
-                            "withdraw",
-                            "Withdraw the statement",
-                            "Keep the evidence and the withdrawal visible.",
-                          ],
-                        ] as const
-                      ).map(([action, title, sub]) => (
-                        <label
-                          key={action}
-                          className={
-                            "response-option " +
-                            (response.action === action ? "chosen" : "")
-                          }
-                        >
-                          <input
-                            type="radio"
-                            name="response"
-                            checked={response.action === action}
-                            onChange={() =>
-                              setResponse((r) => ({ ...r, action }))
-                            }
-                          />
-                          <span>
-                            <strong>{title}</strong>
-                            <small>{sub}</small>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                    <div className="response-fields">
-                      <div>
-                        <label className="field-label" htmlFor="response">
-                          Your explanation
-                        </label>
-                        <textarea
-                          id="response"
-                          placeholder="What does the evidence change, and what still needs follow-up?"
-                          value={response.explanation}
-                          maxLength={5000}
-                          onChange={(e) =>
-                            setResponse((r) => ({
-                              ...r,
-                              explanation: e.target.value,
-                            }))
-                          }
-                        />
-                      </div>
-                      {response.action === "correct" && (
-                        <div>
-                          <label className="field-label" htmlFor="corrected">
-                            Corrected statement
-                          </label>
-                          <textarea
-                            id="corrected"
-                            placeholder="Detections are recorded in this interval. The repair and subsequent mitigation require field verification."
-                            value={response.revisedText}
-                            maxLength={3000}
-                            onChange={(e) =>
-                              setResponse((r) => ({
-                                ...r,
-                                revisedText: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <div className="response-bottom">
-                      <p>
-                        <ShieldCheck size={15} /> Completing a review does not
-                        certify mitigation.
-                      </p>
-                      <button
-                        className="button primary"
-                        onClick={finishResponse}
-                      >
-                        <Check size={16} /> Complete this review
-                      </button>
-                    </div>
-                  </>
-                )}
-              </section>
-            )}
-            <div className="below-grid">
-              <section className="panel guidance-panel">
-                <div className="panel-heading">
-                  <Sparkles size={17} />
-                  <h2>Evidence guidance</h2>
-                  <Pill>
-                    {assistance.engine === "semantic-local"
-                      ? "LOCAL AI + KEYWORDS"
-                      : "REFERENCE NOTES"}
-                  </Pill>
-                </div>
-                <div className="guidance-grid">
-                  {guidance.map((c) => (
-                    <article key={c.id}>
-                      <h3>{c.title}</h3>
-                      <p>{c.text}</p>
-                      <a href={c.url} target="_blank" rel="noreferrer">
-                        Source & context <ArrowUpRight size={12} />
-                      </a>
-                    </article>
-                  ))}
-                </div>
-                <p className="guidance-disclosure">
-                  Guidance text is authored and cited. The local model ranks
-                  notes and suggests a claim type; the evidence finding follows
-                  fixed rules.
-                </p>
-              </section>
-              <section className="panel portable-panel">
-                <span className="portable-icon">
-                  <FileJson size={27} />
-                </span>
-                <h2>A review you can hand over.</h2>
-                <p>
-                  Export the statement, source records, policy, finding and
-                  human response. Recompute the result outside this app.
-                </p>
-                <button
-                  className="button secondary full"
-                  disabled={!packet}
-                  onClick={() => {
-                    if (packet) {
-                      const text = JSON.stringify(packet, null, 2);
-                      setVerifyInput(text);
-                      setTab("verify");
-                      void verify(text);
-                    }
-                  }}
-                >
-                  Replay this review <ArrowRight size={16} />
-                </button>
-                <button className="text-button" onClick={loadLedger}>
-                  Optional blockchain publication <ArrowUpRight size={13} />
-                </button>
-              </section>
-            </div>
-            {showHistory && (
-              <section className="panel history-panel">
-                <div className="panel-heading">
-                  <GitBranch size={18} />
-                  <h2>Local revision history</h2>
-                  <button
-                    className="icon-button"
-                    onClick={() => setShowHistory(false)}
-                    aria-label="Close history"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                <p>
-                  Stored on this browser. Export reviews for portability. Prior
-                  acknowledgements apply to their original revisions.
-                </p>
-                {!history.length ? (
-                  <p>No completed reviews yet.</p>
-                ) : (
-                  history.map((p, i) => (
-                    <div className="history-row" key={p.digest}>
-                      <strong>r{p.payload.revision}</strong>
-                      <span>
-                        {p.payload.response.action}
-                        <small>{short(p.digest)}</small>
-                      </span>
-                      <Pill
-                        tone={i === history.length - 1 ? "teal" : "neutral"}
-                      >
-                        {i === history.length - 1
-                          ? "Latest local"
-                          : "Superseded locally"}
-                      </Pill>
-                      <span>
-                        {p.receipt ? "Commitment attached" : "Unpublished"}
-                      </span>
-                      <button
-                        className="text-button"
-                        onClick={() => download(p)}
-                      >
-                        Export
-                      </button>
-                      <button
-                        className="text-button"
-                        onClick={() => {
-                          setTab("verify");
-                          void verify(JSON.stringify(p));
-                        }}
-                      >
-                        Verify
-                      </button>
-                    </div>
-                  ))
-                )}
-                <button
-                  className="text-button"
-                  onClick={() => {
-                    localStorage.removeItem("afterplume-history-v1");
-                    setHistory([]);
-                    setPacket(undefined);
-                    setNotice(
-                      "Local history cleared. Downloaded packets and blockchain history are preserved.",
-                    );
-                  }}
-                >
-                  Clear this browser’s history
-                </button>
-              </section>
-            )}
-          </>
+          <ReviewDesk
+            setVerifyInput={setVerifyInput}
+            claim={claim}
+            packet={packet}
+            history={history}
+            response={response}
+            assistance={assistance}
+            busy={busy}
+            aiBusy={aiBusy}
+            aiStatus={aiStatus}
+            expanded={expanded}
+            fixture={fixture}
+            selected={selected}
+            latest={latest}
+            complete={complete}
+            guidance={guidance}
+            showHistory={showHistory}
+            setShowHistory={setShowHistory}
+            changeClaim={changeClaim}
+            requestAI={requestAI}
+            cancelAI={cancelAI}
+            confirmSuggestion={confirmSuggestion}
+            setAssistance={setAssistance}
+            runReview={runReview}
+            setExpanded={setExpanded}
+            navigate={navigate}
+            finishResponse={finishResponse}
+            setResponse={setResponse}
+            loadLedger={loadLedger}
+            verify={verify}
+            setHistory={setHistory}
+            setPacket={setPacket}
+            setNotice={setNotice}
+          />
         )}
         {tab === "verify" && (
           <>
@@ -1302,6 +759,38 @@ export default function App() {
                 <Upload size={16} /> Import review packet
               </button>
             </section>
+            <div className="packaged-example">
+              <div>
+                <h2>Start with a working example.</h2>
+                <p>
+                  No JSON to paste. Load the original review, or run the guided
+                  omission test.
+                </p>
+              </div>
+              <button
+                className="button secondary"
+                disabled={!!busy}
+                onClick={async () => {
+                  try {
+                    const r = await fetch("/data/example-review.json");
+                    if (!r.ok) throw new Error("Example unavailable.");
+                    await verify(await r.text());
+                  } catch (e) {
+                    setError(
+                      e instanceof Error ? e.message : "Example unavailable.",
+                    );
+                  }
+                }}
+              >
+                Load example & verify
+              </button>
+              <button
+                className="button primary"
+                onClick={() => navigate("proof")}
+              >
+                Watch the omission test <ArrowRight size={16} />
+              </button>
+            </div>
             <div className="verify-grid">
               <section className="panel">
                 <div className="panel-heading">
@@ -1451,131 +940,9 @@ export default function App() {
             </div>
           </>
         )}
-        {tab === "method" && (
-          <>
-            <section className="page-heading">
-              <div>
-                <p className="eyebrow">A SMALL CLAIM. VISIBLE LIMITS.</p>
-                <h1>What this review establishes.</h1>
-                <p className="intro">
-                  Evidence, inference and acknowledgement have different
-                  meanings.
-                </p>
-              </div>
-            </section>
-            <div className="method-grid">
-              <section className="panel">
-                <h2>The evidence policy</h2>
-                <ol>
-                  <li>Match the exact provider source ID.</li>
-                  <li>
-                    Select every detection within the start-inclusive,
-                    end-exclusive provider calendar dates.
-                  </li>
-                  <li>Keep all sensors and records with missing rates.</li>
-                  <li>
-                    Apply fixed, versioned rules for the confirmed claim type.
-                  </li>
-                  <li>
-                    Preserve the human response without deleting the original
-                    claim.
-                  </li>
-                </ol>
-                <h3>What remains unassessed</h3>
-                <p>
-                  Physical repair, facility ownership, sustained cessation,
-                  regulatory compliance and a percentage emissions reduction. A
-                  later plume requires follow-up; it does not prove a repair did
-                  not happen.
-                </p>
-              </section>
-              <section className="panel">
-                <h2>Public source and attribution</h2>
-                <p>
-                  UNEP IMEO MARS. Pinned download captured on 12 October 2026:{" "}
-                  {fixture.manifest.recordCount.toLocaleString("en-US")} plume
-                  rows and{" "}
-                  {fixture.manifest.sourceCount.toLocaleString("en-US")}{" "}
-                  sources.
-                </p>
-                <p>
-                  This is detection-only data. No complete negative-observation
-                  or overpass denominator is available. Some records have no
-                  source assignment or quantified rate.
-                </p>
-                <a
-                  href="https://methanedata.unep.org/download-dataset"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Provider download <ArrowUpRight size={13} />
-                </a>
-                <h3>Data license notices differ</h3>
-                <p>
-                  The download dictionary states CC BY-NC-SA 4.0; general terms
-                  state CC BY-NC 4.0. This noncommercial demo preserves
-                  attribution and share-alike terms for adapted fixtures. Code
-                  is MIT; model is Apache-2.0.
-                </p>
-                <a
-                  href="https://methanedata.unep.org/dict-mars-plumes"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Dictionary
-                </a>{" "}
-                ·{" "}
-                <a
-                  href="https://methanedata.unep.org/terms-of-use"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Provider terms
-                </a>
-              </section>
-              <section className="panel">
-                <h2>Local AI, bounded responsibility</h2>
-                <p>
-                  {MODEL.id} computes sentence embeddings in a browser worker.
-                  Hybrid semantic and keyword ranking retrieves authored, cited
-                  guidance. You confirm the claim type.
-                </p>
-                <p>
-                  Inference stays on your device. The initial model download
-                  needs a connection; cached files may work offline. Errors fall
-                  back to keyword retrieval. The fixed evidence finding does not
-                  depend on the model.
-                </p>
-                <h3>Packet protocol</h3>
-                <p>
-                  Strict JSON schema, RFC 8785 canonicalization and SHA-256. The
-                  digest excludes the receipt to avoid a circular hash.
-                  Duplicate keys and non-finite numbers are rejected.
-                </p>
-              </section>
-              <section className="panel">
-                <h2>Blockchain scope</h2>
-                <p>
-                  The registry records owner-submitted digests, sequential
-                  revisions, explicit reviewer authorization, acknowledgement
-                  and terminal withdrawal. Reviewers are addresses, not
-                  certified auditors.
-                </p>
-                <p>
-                  A prior revision’s acknowledgement remains historical when a
-                  new revision is published. A local development chain is
-                  resettable; it is never shown as a durable public anchor.
-                </p>
-                <h3>No scientific signature</h3>
-                <p>
-                  The provider ZIP is downloaded over HTTPS and pinned by hash.
-                  UNEP has not cryptographically signed this packet. A ledger
-                  commitment does not establish the truth of a claim or the
-                  honesty of a reviewer.
-                </p>
-              </section>
-            </div>
-          </>
+        {tab === "method" && <MethodView manifest={fixture.manifest} />}
+        {showLedgerEvidence && (
+          <LedgerEvidence onClose={() => setShowLedgerEvidence(false)} />
         )}
         {showLedger && ledger && (
           <>

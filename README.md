@@ -1,12 +1,18 @@
 # AfterPlume
 
-**Check the claim. Keep the evidence. Replay the review.**
+**A report can hide a plume. Replay catches it.**
 
 **[Open the live evidence desk](https://afterplume.vercel.app)** · [Measured validation](docs/VALIDATION.md) · [Working walkthrough](docs/DEMO.md)
 
 AfterPlume reviews a bounded methane statement against public detection data. It preserves the original claim, includes every matching observation, explains the evidence limits and exports a packet another person can replay. The example uses actual UNEP IMEO MARS records and an explicitly hypothetical statement; it makes no operator allegation.
 
 ## Try the hero flow
+
+Start at the [observatory](https://afterplume.vercel.app): explore all 4,211 provider sources on the map, search by source/country/sector, or open the [proof lab](https://afterplume.vercel.app/proof). The self-running tour checks the original packet, removes a record, recomputes its finding and hash, and replays the edited packet against the full ZIP. Both packets can be downloaded. No JSON pasting is needed.
+
+The all-source interval check runs the same explicitly hypothetical statement through the fixed policy for every source. In 1 May 2026 included to 2 June 2026 excluded, 334 sources have detections and 3,877 have no matching records. These are dataset check results, not real operator statements or accountability scores. Reproduce with `npm run evaluate:batch`.
+
+For your own review, open any source from the explorer or go to the [review desk](https://afterplume.vercel.app/review). Keyword suggestions appear immediately; on-device semantic inference loads in the background. You can confirm the keyword suggestion and proceed while it loads.
 
 1. Open the review desk for provider source `AZE_S_010`.
 2. Keep the example interval: 1 May 2026 included to 2 June 2026 excluded. Optionally run local assistance and confirm its suggested claim type.
@@ -103,6 +109,10 @@ See [architecture](docs/ARCHITECTURE.md), [packet protocol](docs/PROTOCOL.md), [
 
 Actual checks: **53 evidence/packet tests and 19 EVM contract tests passed**. The authored holdout retrieval test ranked the expected guidance note first for **16/18 hybrid queries**, compared with **14/18 BM25 queries**. See [validation and limitations](docs/VALIDATION.md) for commands, device details, all engines and cold/warm measurements.
 
+![Global source explorer using the full pinned source catalogue](docs/screenshots/07-observatory.png)
+
+![Actual original and rehashed omitted-record packets replayed side by side](docs/screenshots/08-proof-lab.png)
+
 ![Evidence desk with real detection records and a hypothetical claim](docs/screenshots/02-evidence-finding.png)
 
 ![Omitted record with a freshly valid hash fails source replay](docs/screenshots/05-omission-detected.png)
@@ -110,3 +120,5 @@ Actual checks: **53 evidence/packet tests and 19 EVM contract tests passed**. Th
 Additional [working screenshots](docs/screenshots/) and [walkthrough](docs/DEMO.md) document the complete flow.
 
 Application code: [MIT](LICENSE). Public data: [separate noncommercial notices](DATA_LICENSE.md); adapted fixtures retain attribution and share-alike. Local model: [Apache-2.0 notice](MODEL_LICENSE.md). This is a noncommercial research prototype.
+
+Map outlines: Natural Earth, public domain, served locally. Source positions are UNEP provider records and do not establish facility ownership. See [product flow and boundaries](docs/PRODUCT.md).

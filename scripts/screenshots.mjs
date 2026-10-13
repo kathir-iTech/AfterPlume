@@ -9,7 +9,9 @@ const page = await browser.newPage({
   viewport: { width: 1440, height: 1000 },
   deviceScaleFactor: 1,
 });
-await page.goto(process.env.BASE_URL ?? "http://127.0.0.1:5173");
+await page.goto(
+  new URL("/review", process.env.BASE_URL ?? "http://127.0.0.1:5173").href,
+);
 await page.getByRole("heading", { name: "Bound the statement" }).waitFor();
 await page.screenshot({
   path: new URL("01-review-desk.png", root).pathname.replace(
@@ -76,5 +78,45 @@ await page.screenshot({
   ),
   fullPage: true,
 });
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.goto(process.env.BASE_URL ?? "http://127.0.0.1:5173");
+await page.locator('canvas[data-outline-ready="true"]').waitFor();
+await page.locator(".source-table tbody tr").first().waitFor();
+await page.screenshot({
+  path: new URL("07-observatory.png", root).pathname.replace(
+    /^\/([A-Za-z]:)/,
+    "$1",
+  ),
+  fullPage: true,
+});
+await page.setViewportSize({ width: 1200, height: 630 });
+await page.screenshot({
+  path: new URL(
+    "../apps/web/public/social-preview.png",
+    import.meta.url,
+  ).pathname.replace(/^\/([A-Za-z]:)/, "$1"),
+});
+await page.setViewportSize({ width: 390, height: 844 });
+await page.screenshot({
+  path: new URL("09-mobile-observatory.png", root).pathname.replace(
+    /^\/([A-Za-z]:)/,
+    "$1",
+  ),
+  fullPage: true,
+});
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page
+  .getByRole("button", { name: "Watch the proof", exact: true })
+  .click();
+await page.locator(".proof-packet.edited .mismatch").waitFor();
+await page.screenshot({
+  path: new URL("08-proof-lab.png", root).pathname.replace(
+    /^\/([A-Za-z]:)/,
+    "$1",
+  ),
+  fullPage: true,
+});
 await browser.close();
-console.log("Six screenshots captured from the working application.");
+console.log(
+  "Nine screenshots and a social preview captured from the working application.",
+);

@@ -1,5 +1,11 @@
 # Architecture
 
+The main entry now opens a world source explorer. Dedicated React views separate the explorer, proof tour, review desk, packet checks, scientific method, timeline, map and recorded ledger evidence. Browser routes are `/`, `/proof`, `/review`, `/verify` and `/method`; explicit Vercel rewrites retain deep links.
+
+The catalogue is generated from the original hash-checked source CSV. An additional data worker loads and verifies the original ZIP, indexes source-assigned records, returns any selected source's raw records and evaluates all-source intervals. It remains separate from the local embedding worker. UI metadata never substitutes for full packet replay against the trusted archive.
+
+Map geometry is local public-domain Natural Earth land data. Canvas keeps all 4,211 source markers lightweight; searchable controls provide a keyboard alternative. No external map API, tiles or key are needed. The proof tour uses actual verifier results and exports the original and edited packets, without publishing a chain transaction automatically.
+
 ```mermaid
 flowchart LR
   A[UNEP public ZIP] --> B[Pinned static snapshot]

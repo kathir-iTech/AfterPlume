@@ -1,5 +1,6 @@
 """Reproduce the pinned public fixture. Python standard library only."""
 from pathlib import Path
+from collections import defaultdict
 import csv, hashlib, io, json, shutil, sys, urllib.request, zipfile
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'apps/web/public/data'
@@ -29,6 +30,18 @@ case_ids = ['AZE_S_010']
 fixture = dict(manifest=manifest, sources=[s for s in sources if s['source_name'] in case_ids], records=[normalize(r) for r in plumes if r['source_name'] in case_ids])
 (OUT/'case.json').write_text(json.dumps(fixture,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
 (OUT/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
+grouped = defaultdict(list)
+for row in plumes:
+    grouped[row['source_name']].append(row)
+index = []
+for source in sources:
+    records = grouped[source['source_name']]
+    dates = sorted(r['tile_date'][:10] for r in records if r['tile_date'])
+    index.append(dict(id=source['source_name'], country=source['country'], sector=source['sector'],
+                      lat=source['lat'], lon=source['lon'], count=len(records),
+                      first=dates[0] if dates else '', latest=dates[-1] if dates else ''))
+(OUT/'source-index.json').write_text(json.dumps(dict(manifest=manifest,sources=index,
+    unassignedRecords=len(grouped.get('',[]))),ensure_ascii=False,separators=(',',':')),encoding='utf-8')
 (ROOT/'public-data').mkdir(exist_ok=True)
 (ROOT/'public-data/snapshot-manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
 print(json.dumps({'zip_bytes':len(blob),'plumes':len(plumes),'sources':len(sources),'case_records':len(fixture['records']),'sha256':EXPECTED},indent=2))

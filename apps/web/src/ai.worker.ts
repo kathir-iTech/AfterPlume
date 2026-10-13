@@ -13,7 +13,7 @@ env.allowLocalModels = true;
 env.localModelPath = "/models/";
 // Avoid an HTTP disk-cache failure on large streamed model responses. The
 // library's explicit CacheStorage cache remains available; queries stay local.
-env.fetch=(input,init)=>fetch(input,{...init,cache:'no-store'});
+env.fetch = (input, init) => fetch(input, { ...init, cache: "no-store" });
 env.backends.onnx.wasm!.numThreads = 1;
 env.backends.onnx.wasm!.wasmPaths = { wasm: wasmUrl, mjs: wasmModuleUrl };
 let extractor:
