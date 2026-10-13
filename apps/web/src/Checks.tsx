@@ -42,7 +42,10 @@ export function CheckRow({
             {check.status.replaceAll("_", " ")}
           </Pill>
         </h3>
-        <p>{check.detail}</p>
+        <details>
+          <summary>Details</summary>
+          <p>{check.detail}</p>
+        </details>
       </div>
     </div>
   );

@@ -1,27 +1,22 @@
 # AfterPlume
 
-**A report can hide a plume. Replay catches it.**
+**For climate journalists: check what a methane report left out.**
 
-**[Open the live evidence desk](https://afterplume.vercel.app)** · [Measured validation](docs/VALIDATION.md) · [Working walkthrough](docs/DEMO.md)
+[Open the app](https://afterplume.vercel.app) · [Watch the proof](https://afterplume.vercel.app/proof) · [Measured validation](docs/VALIDATION.md)
 
-AfterPlume reviews a bounded methane statement against public detection data. It preserves the original claim, includes every matching observation, explains the evidence limits and exports a packet another person can replay. The example uses actual UNEP IMEO MARS records and an explicitly hypothetical statement; it makes no operator allegation.
+A report says “no detections.” Three satellite observations need checking. AfterPlume reviews the statement against public evidence and preserves a file someone else can replay.
 
-## Try the hero flow
+The interactive example removes one observation and rebuilds the file's hash. The hash passes; the source-completeness check catches the missing record. The statement is hypothetical, and the satellite records are real UNEP MARS observations.
 
-Start at the [observatory](https://afterplume.vercel.app): explore all 4,211 provider sources on the map, search by source/country/sector, or open the [proof lab](https://afterplume.vercel.app/proof). The self-running tour checks the original packet, removes a record, recomputes its finding and hash, and replays the edited packet against the full ZIP. Both packets can be downloaded. No JSON pasting is needed.
+## Try it
 
-The all-source interval check runs the same explicitly hypothetical statement through the fixed policy for every source. In 1 May 2026 included to 2 June 2026 excluded, 334 sources have detections and 3,877 have no matching records. These are dataset check results, not real operator statements or accountability scores. Reproduce with `npm run evaluate:batch`.
+1. **Watch the proof:** a compact comparison runs actual checks and offers both files for inspection.
+2. **Review a statement:** choose a source and interval, check the observations, then record your response.
+3. **Verify the review:** import an exported file or use the example. Detailed checks are available on request.
 
-For your own review, open any source from the explorer or go to the [review desk](https://afterplume.vercel.app/review). Keyword suggestions appear immediately; on-device semantic inference loads in the background. You can confirm the keyword suggestion and proceed while it loads.
+The [source explorer](https://afterplume.vercel.app/explore) includes all 4,211 provider sources. Batch tools, raw records and scientific context remain available behind labelled disclosures. Core review requires no account or paid API.
 
-1. Open the review desk for provider source `AZE_S_010`.
-2. Keep the example interval: 1 May 2026 included to 2 June 2026 excluded. Optionally run local assistance and confirm its suggested claim type.
-3. Run the evidence check. Three source-assigned detection records fall in that interval. This contradicts only the bounded statement “no recorded detections.” Repair and mitigation remain unassessed.
-4. Correct, retain with an explanation or withdraw the statement. The original text and observations remain visible.
-5. Export the review or replay it in the verifier.
-6. Try **Omit a record & rehash**. The edited copy can pass its own hash check while source inclusion and replay fail against the full original ZIP.
-
-No account, wallet or paid API is needed for this flow. Optional ledger publication requires a separately configured test chain and wallet. A blockchain transaction records a digest, not scientific truth.
+Built for **IEEE ClimateChain Global Hackathon**, **Climate Data & Environmental Monitoring**. The target user is a journalist investigating methane statements. See [event and judging criteria](https://ieee-climatechain-hack.devpost.com/), [product flow](docs/PRODUCT.md) and [architecture](docs/ARCHITECTURE.md).
 
 ## Run locally
 

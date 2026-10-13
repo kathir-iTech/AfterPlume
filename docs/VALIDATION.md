@@ -2,6 +2,10 @@
 
 Reports are generated from actual executions. They are prototype engineering measurements, not independent scientific validation or user outcomes.
 
+The final presentation pass adds acceptance checks for a home page with one primary action and fewer than 100 visible main-content words, keeping catalogue/batch controls off that page, keyboard-operated secondary navigation, direct-link reloads, automatic verification after file import, and preventing a stale finding when the statement changes during archive loading. Detailed diagnostics and context remain accessible through labelled disclosures. The expanded browser suite has 14 stories.
+
+The 14-story suite passed against the production build with the enforced content security policy, including actual local inference. An additional targeted run forced the derived catalogue to fail while changing a statement during archive loading: a subsequent valid source review still worked from the trusted original CSV, and no stale finding appeared. A browser-to-contract lifecycle was also rerun against the production preview and passed actual local EVM publication, reviewer authorization, acknowledgement, subsequent revision and withdrawal.
+
 Two timeline rendering regressions additionally check that a missing rate is displayed on a labelled unquantified rail rather than as zero, while an explicitly reported zero remains a recorded quantified observation. The full unit suite now contains 55 tests: 53 evidence/packet tests and these two rendering checks.
 
 The observatory update passed ten browser stories locally: original review/export/replay, mobile bounded result, real semantic inference, preserving accepted keyword provenance when model downloads are blocked, exporting a correctly sized PNG result card, opening a second country's source with separate revisions, actual guided omission replay, all-source CSV export, immediate keyword confirmation during cold model loading, and mobile/reduced-motion operation. `npm run test:e2e` reproduces these checks.

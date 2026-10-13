@@ -1,25 +1,16 @@
-import type { Dispatch, SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import {
   ArrowDownToLine,
   ArrowRight,
   ArrowUpRight,
   Check,
   ChevronDown,
-  Clock3,
-  FileCheck2,
-  FileJson,
-  FlaskConical,
   GitBranch,
-  Globe2,
-  Info,
-  Layers3,
   LoaderCircle,
-  LockKeyhole,
   Plus,
   Search,
   ShieldCheck,
   Sparkles,
-  TriangleAlert,
   X,
 } from "lucide-react";
 import type {
@@ -73,9 +64,7 @@ type Props = {
   finishResponse: () => Promise<void>;
   loadLedger: () => Promise<void>;
   verify: (text?: string) => Promise<void>;
-  navigate: (
-    value: "explore" | "proof" | "review" | "verify" | "method",
-  ) => void;
+  navigate: (value: import("./routes.ts").View) => void;
 };
 export default function ReviewDesk(props: Props) {
   const {
@@ -112,104 +101,150 @@ export default function ReviewDesk(props: Props) {
     setNotice,
     setVerifyInput,
   } = props;
+  const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    if (packet) setEditing(false);
+  }, [packet?.payload.created]);
+  const showingResult = !!packet && !editing;
+  const source = fixture.sources[0];
+  function replay() {
+    if (packet) {
+      const text = JSON.stringify(packet, null, 2);
+      setVerifyInput(text);
+      navigate("verify");
+      void verify(text);
+    }
+  }
+  const brief =
+    packet?.payload.finding.status === "DETECTION_RECORDED"
+      ? "Recorded observations conflict with “no detections” in this interval."
+      : packet?.payload.finding.status === "NO_MATCHING_DETECTIONS_IN_SNAPSHOT"
+        ? "No records match this interval. This does not establish zero emissions."
+        : packet?.payload.finding.status === "INVALID_INPUT"
+          ? "Choose a known source and valid dates."
+          : "Satellite observations alone cannot establish this claim. Field evidence is needed.";
+  function recordList(records: PlumeRecord[]) {
+    return (
+      <div className="record-list">
+        {records.map((r) => (
+          <div
+            key={r.id}
+            className={`record-item ${selected.some((s) => s.id === r.id) ? "in-interval" : ""}`}
+          >
+            <button
+              className="record-summary"
+              aria-expanded={expanded === r.id}
+              onClick={() => setExpanded(expanded === r.id ? undefined : r.id)}
+            >
+              <span className="record-dot" />
+              <span className="record-date">
+                {r.acquired.slice(0, 10)}
+                <small>{r.satellite.split(" - ")[0]}</small>
+              </span>
+              <span className="record-rate">
+                {r.rate ? Number(r.rate).toLocaleString() : "Not quantified"}
+                <small>{r.rate ? "kg/h" : "positive detection"}</small>
+              </span>
+              <ChevronDown size={14} />
+            </button>
+            {expanded === r.id && (
+              <div className="record-detail">
+                <dl>
+                  <dt>Provider UUID</dt>
+                  <dd>{r.id}</dd>
+                  <dt>Original acquisition</dt>
+                  <dd>{r.acquired}</dd>
+                  <dt>Reported standard deviation</dt>
+                  <dd>{r.std ? `${r.std} kg/h` : "Not reported"}</dd>
+                  <dt>Institution</dt>
+                  <dd>{r.raw.detection_institution}</dd>
+                  <dt>Source</dt>
+                  <dd>{r.sourceId}</dd>
+                </dl>
+                <a
+                  href="https://methanedata.unep.org/dict-mars-plumes"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Field definitions <ArrowUpRight size={12} />
+                </a>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
   return (
     <>
-      <section className="page-heading">
+      <section className="review-heading section-heading">
         <div>
-          <p className="eyebrow">FROM A STATEMENT TO A CHECKABLE REVIEW</p>
           <h1>
-            Check the claim.
-            <br />
-            <span>Keep the evidence.</span>
+            {complete && !editing
+              ? "Your review."
+              : showingResult
+                ? "The evidence."
+                : "Review a statement."}
           </h1>
-          <p className="intro">
-            A detection is a record. A repair is a different claim.
-            <br className="desktop-break" /> Make the distinction visible—and
-            let someone else replay it.
+          <p>
+            {showingResult
+              ? "Check the finding, then record your response."
+              : "Choose a source and dates. Check the satellite observations."}
           </p>
         </div>
-        <div className="heading-actions">
-          <button
-            className="button secondary"
-            onClick={() => setShowHistory(!showHistory)}
-          >
-            <GitBranch size={16} /> Review history{" "}
-            <span className="count">{history.length}</span>
-          </button>
-          <button
-            className="button primary"
-            disabled={!packet}
-            onClick={() => packet && download(packet)}
-          >
-            <ArrowDownToLine size={16} /> Export review
-          </button>
-          <p>
-            <LockKeyhole size={12} /> No account or wallet needed
-          </p>
-          {packet && (
+        <div className="review-actions">
+          {history.length > 0 && (
             <button
-              className="text-button"
-              onClick={() => downloadResultCard(packet)}
+              className="button secondary"
+              onClick={() => setShowHistory(!showHistory)}
             >
-              <ArrowDownToLine size={14} /> Download result card
+              <GitBranch size={15} />
+              Review history <span className="count">{history.length}</span>
             </button>
+          )}
+          {packet && (
+            <button className="button primary" onClick={() => download(packet)}>
+              <ArrowDownToLine size={16} />
+              Export review
+            </button>
+          )}
+          {packet && (
+            <details className="action-menu">
+              <summary>More actions</summary>
+              <div>
+                <button onClick={() => downloadResultCard(packet)}>
+                  Download result card
+                </button>
+                <button onClick={loadLedger}>
+                  Optional blockchain publication
+                </button>
+              </div>
+            </details>
           )}
         </div>
       </section>
-      <div className="demo-notice">
-        <FlaskConical size={17} />
-        <div>
-          <strong>Real observations. Hypothetical statement.</strong>
-          <span>
-            {" "}
-            This example makes no allegation about an operator. Source
-            assignment is provided by UNEP.
-          </span>
-        </div>
-        <Pill>WORKING EXAMPLE</Pill>
+      <div className="source-summary review-source">
+        <strong>{source?.source_name}</strong>
+        <span>{source?.country}</span>
+        <button className="text-button" onClick={() => navigate("explore")}>
+          Change source <ArrowRight size={14} />
+        </button>
+        <details>
+          <summary>Source details</summary>
+          <p>
+            {fixture.records.length} observations · {source?.sector} · Latest{" "}
+            {latest?.acquired.slice(0, 10) || "not reported"}
+          </p>
+          <p>
+            {source?.lat}, {source?.lon} · UNEP MARS · Pinned 12 Oct 2026
+          </p>
+        </details>
       </div>
-      <section className="source-summary">
-        <div className="source-symbol">
-          <Layers3 size={25} />
-        </div>
-        <div>
-          <p className="eyebrow">PROVIDER SOURCE</p>
-          <h2>
-            {fixture.sources[0]?.source_name}{" "}
-            <Pill>{fixture.sources[0]?.sector}</Pill>
-          </h2>
-          <span>{fixture.sources[0]?.country} · UNEP IMEO MARS</span>
-        </div>
-        <div className="source-stat">
-          <span>Recorded observations</span>
-          <strong>
-            {fixture.records.length}
-            <small>in this snapshot</small>
-          </strong>
-        </div>
-        <div className="source-stat">
-          <span>Latest acquisition</span>
-          <strong>
-            {latest?.acquired.slice(0, 10)}
-            <small>provider calendar date</small>
-          </strong>
-        </div>
-        <div className="source-coordinate">
-          <Globe2 size={15} />
-          <span>
-            {Math.abs(Number(fixture.sources[0]?.lat)).toFixed(4)}°{" "}
-            {Number(fixture.sources[0]?.lat) >= 0 ? "N" : "S"}
-            <br />
-            {Math.abs(Number(fixture.sources[0]?.lon)).toFixed(4)}°{" "}
-            {Number(fixture.sources[0]?.lon) >= 0 ? "E" : "W"}
-          </span>
-        </div>
-      </section>
-      <div className="desk-grid">
-        <section className="panel claim-panel">
+      {(!packet || editing) && (
+        <section className="panel claim-panel focused-claim">
           <div className="panel-heading">
-            <span className="step">01</span>
             <h2>Bound the statement</h2>
+            <span className="example-tag">Hypothetical example</span>
           </div>
           <label className="field-label" htmlFor="claim-text">
             Statement to review
@@ -220,77 +255,35 @@ export default function ReviewDesk(props: Props) {
             value={claim.text}
             onChange={(e) => changeClaim({ text: e.target.value })}
           />
-          <div className="field-help">
-            <FlaskConical size={13} /> Hypothetical example statement
-          </div>
-          <button
-            className="assist-button"
-            onClick={requestAI}
-            disabled={aiBusy}
-          >
-            <Sparkles size={15} />
-            {aiBusy
-              ? "Instant suggestion ready · semantic loading"
-              : "Suggest a claim type locally"}
-            {!aiBusy && <ArrowRight size={14} />}
-          </button>
-          {aiBusy && (
-            <button className="text-button" onClick={cancelAI}>
-              Cancel loading
-            </button>
-          )}
-          {aiStatus && (
-            <p className="ai-status" role="status">
-              {aiStatus}
-            </p>
-          )}
-          {assistance.suggestedKind && !assistance.confirmedByHuman && (
-            <div className="suggestion">
-              <Sparkles size={16} />
-              <p>
-                Suggested type
-                <br />
-                <strong>{titles[assistance.suggestedKind]}</strong>
-                <small>
-                  {assistance.engine === "lexical"
-                    ? "Keyword suggestion · ready now"
-                    : "On-device semantic suggestion"}
-                </small>
-              </p>
-              <button onClick={confirmSuggestion}>Confirm</button>
+          <div className="claim-options">
+            <div>
+              <label className="field-label" htmlFor="source-id">
+                Exact provider source ID
+              </label>
+              <input
+                id="source-id"
+                value={claim.sourceId}
+                onChange={(e) => changeClaim({ sourceId: e.target.value })}
+              />
             </div>
-          )}
-          <label className="field-label" htmlFor="claim-kind">
-            Confirmed claim type
-          </label>
-          <div className="select-wrap">
-            <select
-              id="claim-kind"
-              value={claim.kind}
-              onChange={(e) =>
-                changeClaim({ kind: e.target.value as Claim["kind"] })
-              }
-            >
-              {Object.entries(titles).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={16} />
-          </div>
-          <p className="field-help">
-            You choose the type. AI never decides the finding.
-          </p>
-          <label className="field-label" htmlFor="source-id">
-            Exact provider source ID
-          </label>
-          <input
-            id="source-id"
-            value={claim.sourceId}
-            onChange={(e) => changeClaim({ sourceId: e.target.value })}
-          />
-          <div className="date-grid">
+            <div>
+              <label className="field-label" htmlFor="claim-kind">
+                Confirmed claim type
+              </label>
+              <select
+                id="claim-kind"
+                value={claim.kind}
+                onChange={(e) =>
+                  changeClaim({ kind: e.target.value as Claim["kind"] })
+                }
+              >
+                {Object.entries(titles).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="field-label" htmlFor="start">
                 {claim.kind === "repair_occurred"
@@ -316,465 +309,333 @@ export default function ReviewDesk(props: Props) {
               />
             </div>
           </div>
-          <p className="calendar-note">
-            <Clock3 size={13} /> Provider calendar dates. No timezone
-            conversion.
-          </p>
-          <button
-            className="button primary full"
-            disabled={!!busy || !assistance.confirmedByHuman}
-            onClick={runReview}
-          >
-            {busy === "review" ? (
-              <LoaderCircle className="spin" size={17} />
-            ) : (
-              <Search size={17} />
-            )}{" "}
-            Run evidence check <ArrowRight size={15} />
-          </button>
-          {!assistance.confirmedByHuman && (
+          <div className="claim-assistance">
             <button
-              className="text-button"
-              onClick={() =>
-                setAssistance((a) => ({ ...a, confirmedByHuman: true }))
-              }
+              className="assist-button"
+              onClick={requestAI}
+              disabled={aiBusy}
             >
-              Keep my selected type
+              <Sparkles size={15} />
+              {aiBusy ? "Suggestions loading…" : "Suggest a claim type locally"}
             </button>
-          )}
-        </section>
-        <section className="panel evidence-panel">
-          <div className="panel-heading">
-            <span className="step">02</span>
-            <h2>Follow the observations</h2>
-            <Pill>{selected.length} IN INTERVAL</Pill>
-          </div>
-          <div className="evidence-caption">
-            <span className="small-dot red" /> Selected interval
-          </div>
-          <Timeline
-            records={fixture.records}
-            start={claim.start}
-            end={claim.end}
-            onSelect={(id) => setExpanded(expanded === id ? undefined : id)}
-          />
-          <div className="records-title">
-            <h3>Detection records</h3>
-            <span>All sensors · source assigned</span>
-          </div>
-          <div className="record-list">
-            {fixture.records.map((r) => {
-              const match = selected.some((s) => s.id === r.id);
-              return (
-                <div
-                  key={r.id}
-                  className={"record-item " + (match ? "in-interval" : "")}
-                >
-                  <button
-                    className="record-summary"
-                    onClick={() =>
-                      setExpanded(expanded === r.id ? undefined : r.id)
-                    }
-                    aria-expanded={expanded === r.id}
-                  >
-                    <span className={"record-dot " + (match ? "red" : "")} />
-                    <span className="record-date">
-                      {r.acquired.slice(0, 10)}
-                      <small>{r.satellite.split(" - ")[0]}</small>
-                    </span>
-                    <span className="record-rate">
-                      {r.rate
-                        ? Number(r.rate).toLocaleString("en-US")
-                        : "Not quantified"}
-                      <small>{r.rate ? "kg/h" : "positive detection"}</small>
-                    </span>
-                    <ChevronDown size={14} />
-                  </button>
-                  {expanded === r.id && (
-                    <div className="record-detail">
-                      <dl>
-                        <dt>Provider UUID</dt>
-                        <dd>{r.id}</dd>
-                        <dt>Original acquisition string</dt>
-                        <dd>{r.acquired}</dd>
-                        <dt>Reported standard deviation</dt>
-                        <dd>{r.std ? `${r.std} kg/h` : "Not reported"}</dd>
-                        <dt>Detection institution</dt>
-                        <dd>{r.raw.detection_institution}</dd>
-                        <dt>Source assignment</dt>
-                        <dd>{r.sourceId}</dd>
-                      </dl>
-                      <a
-                        href="https://methanedata.unep.org/dict-mars-plumes"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Field definitions <ArrowUpRight size={12} />
-                      </a>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="evidence-footnote">
-            <Info size={15} />
-            <p>
-              Rates are instantaneous estimates. A record without a rate still
-              counts as a detection.
-            </p>
-          </div>
-        </section>
-        <section className="panel finding-panel">
-          <div className="panel-heading">
-            <span className="step">03</span>
-            <h2>Review the finding</h2>
-          </div>
-          {packet ? (
-            <>
-              <div
-                className={
-                  "finding-box " +
-                  (packet.payload.finding.status === "DETECTION_RECORDED"
-                    ? "conflict"
-                    : "caution")
-                }
-              >
-                <div className="finding-icon">
-                  <TriangleAlert size={23} />
-                </div>
-                <p className="eyebrow">EVIDENCE FINDING</p>
-                <div className="finding-count">
-                  {packet.payload.records.length}
-                </div>
-                <h3>{findingTitle[packet.payload.finding.status]}</h3>
-                <p>{packet.payload.finding.reason}</p>
-                <Pill
-                  tone={
-                    packet.payload.finding.status === "DETECTION_RECORDED"
-                      ? "red"
-                      : "amber"
+            {assistance.suggestedKind && !assistance.confirmedByHuman && (
+              <div className="suggestion">
+                <p>
+                  Suggested type{" "}
+                  <strong>{titles[assistance.suggestedKind]}</strong>
+                  <small>
+                    {assistance.engine === "lexical"
+                      ? "Keyword suggestion · ready now"
+                      : "On-device semantic suggestion"}
+                  </small>
+                </p>
+                <button onClick={confirmSuggestion}>Confirm</button>
+                <button
+                  className="keep-type"
+                  onClick={() =>
+                    setAssistance((a) => ({ ...a, confirmedByHuman: true }))
                   }
                 >
-                  {packet.payload.records.length} matching record
-                  {packet.payload.records.length === 1 ? "" : "s"}
-                </Pill>
+                  Keep my type
+                </button>
               </div>
-              <div className="status-row">
-                <span>Review status</span>
-                <strong>
-                  {complete ? "Completed" : "Awaiting your response"}
-                </strong>
+            )}
+            {aiStatus && (
+              <details className="assistance-details">
+                <summary>
+                  Local assistance details{aiBusy ? " · loading" : ""}
+                </summary>
+                <p className="ai-status" role="status">
+                  {aiStatus}
+                </p>
+                {aiBusy && (
+                  <button className="text-button" onClick={cancelAI}>
+                    Cancel loading
+                  </button>
+                )}
+              </details>
+            )}
+          </div>
+          <div className="claim-submit">
+            <span>Dates use the provider’s calendar.</span>
+            <button
+              className="button primary"
+              disabled={!!busy || !assistance.confirmedByHuman}
+              onClick={runReview}
+            >
+              {busy === "review" ? (
+                <LoaderCircle className="spin" size={17} />
+              ) : (
+                <Search size={17} />
+              )}
+              Run evidence check <ArrowRight size={16} />
+            </button>
+          </div>
+        </section>
+      )}
+      {showingResult && packet && (
+        <>
+          <div className="review-result-grid">
+            <section
+              className={`panel finding-panel focused-finding ${packet.payload.finding.status === "DETECTION_RECORDED" ? "conflict" : "caution"}`}
+            >
+              <p className="eyebrow">FINDING</p>
+              <div
+                className="finding-count"
+                aria-label={`${packet.payload.records.length} matching records`}
+              >
+                {packet.payload.records.length}
+                <span>matching records</span>
               </div>
-              <div className="status-row">
+              <h2>{findingTitle[packet.payload.finding.status]}</h2>
+              <p className="finding-brief">{brief}</p>
+              <div className="finding-qualification">
                 <span>Physical mitigation</span>
                 <Pill tone="amber">Not assessed</Pill>
               </div>
-              <div className="status-row">
-                <span>Observation coverage</span>
-                <strong>Insufficient for cessation</strong>
-              </div>
-              <div className="policy-stamp">
-                <FileCheck2 size={15} />
-                <span>
-                  Deterministic policy · v1.0.0
-                  <br />
-                  <small>All source-matching records checked</small>
-                </span>
-              </div>
-            </>
-          ) : (
-            <div className="finding-empty">
-              <FileCheck2 size={37} strokeWidth={1.2} />
-              <h3>The evidence gets a say.</h3>
-              <p>
-                Run the check to see what these records establish—and what they
-                leave open.
-              </p>
-            </div>
-          )}
-          <details className="limits-note">
-            <summary>What this finding does not prove</summary>
-            <div className="limits-content">
-              <Info size={16} />
-              <div>
-                <strong>Keep this limit visible</strong>
+              <details className="disclosure">
+                <summary>What this finding means</summary>
+                <p>{packet.payload.finding.reason}</p>
                 <p>
-                  No matching records is not proof of zero emissions. The
-                  snapshot has no complete negative-observation history.
+                  Records cover detections, not every satellite overpass. A
+                  repair, sustained cessation or measured reduction needs
+                  appropriate field evidence.
                 </p>
-              </div>
-            </div>
-          </details>
-          <button className="text-button" onClick={() => navigate("method")}>
-            Read the method & limitations <ArrowUpRight size={13} />
-          </button>
-        </section>
-      </div>
-      {packet && (
-        <section className="panel response-panel">
-          <div className="response-heading">
-            <div className="panel-heading">
-              <span className="step">04</span>
-              <h2>Respond to the evidence</h2>
-            </div>
-            <Pill tone={complete ? "teal" : "neutral"}>
-              {complete ? "REVIEW COMPLETED" : "HUMAN DECISION"}
-            </Pill>
-          </div>
-          {complete ? (
-            <div className="completed-response">
-              <Check size={20} />
-              <div>
-                <strong>
-                  {packet.payload.response.action === "correct"
-                    ? "Statement corrected or narrowed"
-                    : packet.payload.response.action === "withdraw"
-                      ? "Statement withdrawn"
-                      : "Statement retained with explanation"}
-                </strong>
-                <p>{packet.payload.response.explanation}</p>
-                {packet.payload.response.revisedText && (
-                  <blockquote>{packet.payload.response.revisedText}</blockquote>
-                )}
-                <span className="field-help">
-                  Original statement and conflicting evidence remain in the
-                  packet.
-                </span>
-              </div>
-              <button className="button secondary" onClick={runReview}>
-                <Plus size={15} /> Start next revision
+                <p>
+                  Fixed policy v1.0.0 · Every matching source-assigned
+                  observation is included, across all sensors and rates.
+                </p>
+                <button
+                  className="text-button"
+                  onClick={() => navigate("method")}
+                >
+                  Full method <ArrowUpRight size={13} />
+                </button>
+              </details>
+              <button className="text-button" onClick={() => setEditing(true)}>
+                Edit statement <ArrowRight size={14} />
               </button>
+            </section>
+            <section className="panel evidence-panel focused-evidence">
+              <div className="panel-heading">
+                <h2>Satellite observations</h2>
+              </div>
+              <Timeline
+                records={fixture.records}
+                start={claim.start}
+                end={claim.end}
+                onSelect={(id) => setExpanded(expanded === id ? undefined : id)}
+              />
+              {recordList(selected)}
+              <details className="disclosure">
+                <summary>
+                  All source observations ({fixture.records.length})
+                </summary>
+                {recordList(fixture.records)}
+              </details>
+            </section>
+          </div>
+          <section className="panel response-panel">
+            <div className="panel-heading">
+              <h2>{complete ? "Your response" : "Respond to the finding"}</h2>
             </div>
-          ) : (
-            <>
-              <div className="response-options">
-                {(
-                  [
-                    [
-                      "correct",
-                      "Correct or narrow",
-                      "Keep only what the evidence supports.",
-                    ],
-                    [
-                      "retain",
-                      "Retain with explanation",
-                      "Preserve the conflict and explain your reasoning.",
-                    ],
-                    [
-                      "withdraw",
-                      "Withdraw the statement",
-                      "Keep the evidence and the withdrawal visible.",
-                    ],
-                  ] as const
-                ).map(([action, title, sub]) => (
-                  <label
-                    key={action}
-                    className={
-                      "response-option " +
-                      (response.action === action ? "chosen" : "")
-                    }
-                  >
-                    <input
-                      type="radio"
-                      name="response"
-                      checked={response.action === action}
-                      onChange={() => setResponse((r) => ({ ...r, action }))}
-                    />
-                    <span>
-                      <strong>{title}</strong>
-                      <small>{sub}</small>
-                    </span>
-                  </label>
-                ))}
-              </div>
-              <div className="response-fields">
+            {complete ? (
+              <div className="completed-response">
+                <Check size={20} />
                 <div>
-                  <label className="field-label" htmlFor="response">
-                    Your explanation
-                  </label>
-                  <textarea
-                    id="response"
-                    placeholder="What does the evidence change, and what still needs follow-up?"
-                    value={response.explanation}
-                    maxLength={5000}
-                    onChange={(e) =>
-                      setResponse((r) => ({
-                        ...r,
-                        explanation: e.target.value,
-                      }))
-                    }
-                  />
+                  <strong>
+                    {packet.payload.response.action === "correct"
+                      ? "Statement corrected or narrowed"
+                      : packet.payload.response.action === "withdraw"
+                        ? "Statement withdrawn"
+                        : "Statement retained with explanation"}
+                  </strong>
+                  <p>{packet.payload.response.explanation}</p>
+                  {packet.payload.response.revisedText && (
+                    <blockquote>
+                      {packet.payload.response.revisedText}
+                    </blockquote>
+                  )}
                 </div>
-                {response.action === "correct" && (
-                  <div>
-                    <label className="field-label" htmlFor="corrected">
-                      Corrected statement
-                    </label>
-                    <textarea
-                      id="corrected"
-                      placeholder="Detections are recorded in this interval. The repair and subsequent mitigation require field verification."
-                      value={response.revisedText}
-                      maxLength={3000}
-                      onChange={(e) =>
-                        setResponse((r) => ({
-                          ...r,
-                          revisedText: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                )}
               </div>
-              <div className="response-bottom">
-                <p>
-                  <ShieldCheck size={15} /> Completing a review does not certify
-                  mitigation.
-                </p>
-                <button className="button primary" onClick={finishResponse}>
-                  <Check size={16} /> Complete this review
+            ) : (
+              <>
+                <div className="response-options">
+                  {(
+                    [
+                      ["correct", "Correct or narrow"],
+                      ["retain", "Retain with explanation"],
+                      ["withdraw", "Withdraw the statement"],
+                    ] as const
+                  ).map(([action, title]) => (
+                    <label key={action} className="response-option">
+                      <input
+                        type="radio"
+                        name="response"
+                        checked={response.action === action}
+                        onChange={() => setResponse((r) => ({ ...r, action }))}
+                      />
+                      <strong>{title}</strong>
+                    </label>
+                  ))}
+                </div>
+                {response.action !== "pending" && (
+                  <>
+                    <div className="response-fields">
+                      <div>
+                        <label className="field-label" htmlFor="response">
+                          Your explanation
+                        </label>
+                        <textarea
+                          id="response"
+                          maxLength={5000}
+                          placeholder="Explain what the evidence changes."
+                          value={response.explanation}
+                          onChange={(e) =>
+                            setResponse((r) => ({
+                              ...r,
+                              explanation: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                      {response.action === "correct" && (
+                        <div>
+                          <label className="field-label" htmlFor="corrected">
+                            Corrected statement
+                          </label>
+                          <textarea
+                            id="corrected"
+                            maxLength={3000}
+                            placeholder="Write the statement the evidence supports."
+                            value={response.revisedText}
+                            onChange={(e) =>
+                              setResponse((r) => ({
+                                ...r,
+                                revisedText: e.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="response-bottom">
+                      <button
+                        className="button primary"
+                        onClick={finishResponse}
+                      >
+                        <Check size={16} />
+                        Complete this review
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+            {complete && (
+              <div className="saved-actions">
+                <button className="button primary" onClick={replay}>
+                  <ShieldCheck size={16} />
+                  Verify this review
+                </button>
+                <button className="button secondary" onClick={runReview}>
+                  <Plus size={15} />
+                  Start next revision
                 </button>
               </div>
-            </>
+            )}
+          </section>
+          {!complete && (
+            <button className="text-button review-replay" onClick={replay}>
+              Verify this review <ArrowRight size={14} />
+            </button>
           )}
-        </section>
+        </>
       )}
-      <div className="below-grid">
-        <section className="panel guidance-panel">
-          <div className="panel-heading">
-            <Sparkles size={17} />
-            <h2>Evidence guidance</h2>
-            <Pill>
-              {assistance.engine === "semantic-local"
-                ? "LOCAL AI + KEYWORDS"
-                : "REFERENCE NOTES"}
-            </Pill>
-          </div>
-          <div className="guidance-grid">
-            {guidance.map((c) => (
-              <article key={c.id}>
-                <h3>{c.title}</h3>
-                <p>{c.text}</p>
-                <a href={c.url} target="_blank" rel="noreferrer">
-                  Source & context <ArrowUpRight size={12} />
-                </a>
-              </article>
-            ))}
-          </div>
-          <p className="guidance-disclosure">
-            Guidance text is authored and cited. The local model ranks notes and
-            suggests a claim type; the evidence finding follows fixed rules.
-          </p>
-        </section>
-        <section className="panel portable-panel">
-          <span className="portable-icon">
-            <FileJson size={27} />
-          </span>
-          <h2>A review you can hand over.</h2>
-          <p>
-            Export the statement, source records, policy, finding and human
-            response. Recompute the result outside this app.
-          </p>
-          <button
-            className="button secondary full"
-            disabled={!packet}
-            onClick={() => {
-              if (packet) {
-                const text = JSON.stringify(packet, null, 2);
-                setVerifyInput(text);
-                navigate("verify");
-                void verify(text);
-              }
-            }}
-          >
-            Replay this review <ArrowRight size={16} />
-          </button>
-          <button className="text-button" onClick={loadLedger}>
-            Optional blockchain publication <ArrowUpRight size={13} />
-          </button>
-        </section>
-      </div>
+      <details className="guidance-disclosure disclosure">
+        <summary>Evidence guidance</summary>
+        <div className="guidance-grid">
+          {guidance.map((c) => (
+            <article key={c.id}>
+              <h3>{c.title}</h3>
+              <p>{c.text}</p>
+              <a href={c.url} target="_blank" rel="noreferrer">
+                Reference <ArrowUpRight size={12} />
+              </a>
+            </article>
+          ))}
+        </div>
+      </details>
       {showHistory && (
         <section className="panel history-panel">
           <div className="panel-heading">
-            <GitBranch size={18} />
             <h2>Local revision history</h2>
             <button
               className="icon-button"
-              onClick={() => setShowHistory(false)}
               aria-label="Close history"
+              onClick={() => setShowHistory(false)}
             >
               <X size={16} />
             </button>
           </div>
-          <p>
-            Stored on this browser. Export reviews for portability. Prior
-            acknowledgements apply to their original revisions.
-          </p>
-          {!history.length ? (
-            <p>No completed reviews yet.</p>
-          ) : (
-            history.map((p, i) => (
-              <div className="history-row" key={p.digest}>
-                <strong>r{p.payload.revision}</strong>
-                <span>
-                  {p.payload.response.action}
-                  <small>
-                    {p.payload.claim.sourceId} · {short(p.digest)}
-                  </small>
-                </span>
-                <Pill
-                  tone={
-                    history
-                      .slice(i + 1)
-                      .some(
-                        (next) =>
-                          next.payload.claim.sourceId ===
-                          p.payload.claim.sourceId,
-                      )
-                      ? "neutral"
-                      : "teal"
-                  }
-                >
-                  {history
+          {history.map((p, i) => (
+            <div className="history-row" key={p.digest}>
+              <strong>r{p.payload.revision}</strong>
+              <span>
+                {p.payload.claim.sourceId}
+                <small>{short(p.digest)}</small>
+              </span>
+              <Pill
+                tone={
+                  history
                     .slice(i + 1)
                     .some(
-                      (next) =>
-                        next.payload.claim.sourceId ===
-                        p.payload.claim.sourceId,
+                      (n) =>
+                        n.payload.claim.sourceId === p.payload.claim.sourceId,
                     )
-                    ? "Older revision"
-                    : "Latest for source"}
-                </Pill>
-                <span>{p.receipt ? "Commitment attached" : "Unpublished"}</span>
-                <button className="text-button" onClick={() => download(p)}>
-                  Export
-                </button>
-                <button
-                  className="text-button"
-                  onClick={() => {
-                    navigate("verify");
-                    void verify(JSON.stringify(p));
-                  }}
-                >
-                  Verify
-                </button>
-              </div>
-            ))
-          )}
-          <button
-            className="text-button"
-            onClick={() => {
-              localStorage.removeItem("afterplume-history-v1");
-              setHistory([]);
-              setPacket(undefined);
-              setNotice(
-                "Local history cleared. Downloaded packets and blockchain history are preserved.",
-              );
-            }}
-          >
-            Clear this browser’s history
-          </button>
+                    ? "neutral"
+                    : "teal"
+                }
+              >
+                {history
+                  .slice(i + 1)
+                  .some(
+                    (n) =>
+                      n.payload.claim.sourceId === p.payload.claim.sourceId,
+                  )
+                  ? "Older revision"
+                  : "Latest for source"}
+              </Pill>
+              <button className="text-button" onClick={() => download(p)}>
+                Export
+              </button>
+              <button
+                className="text-button"
+                onClick={() => {
+                  navigate("verify");
+                  void verify(JSON.stringify(p));
+                }}
+              >
+                Verify
+              </button>
+            </div>
+          ))}
+          <details className="disclosure">
+            <summary>Manage this browser’s history</summary>
+            <button
+              className="text-button"
+              onClick={() => {
+                localStorage.removeItem("afterplume-history-v1");
+                setHistory([]);
+                setPacket(undefined);
+                setNotice(
+                  "Local history cleared. Exported files are preserved.",
+                );
+              }}
+            >
+              Clear local history
+            </button>
+          </details>
         </section>
       )}
     </>

@@ -1,13 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
-  Check,
-  ChevronRight,
   FileCheck2,
   FileJson,
   FlaskConical,
-  Globe2,
   Info,
   LoaderCircle,
   ShieldCheck,
@@ -35,21 +32,20 @@ import {
   verifyPacket,
   type Verification,
 } from "../../../packages/verifier/index.ts";
-import {
-  publishPacket,
-  verifyAnchor,
-  type LedgerConfig,
-} from "../../../packages/core/ledger.ts";
+import type { LedgerConfig } from "../../../packages/core/ledger.ts";
 import type { EIP1193Provider } from "viem";
-import LedgerPanel from "./LedgerPanel.tsx";
+const LedgerPanel = lazy(() => import("./LedgerPanel.tsx"));
 
-import Observatory from "./Observatory.tsx";
-import ProofTour from "./ProofTour.tsx";
-import ReviewDesk from "./ReviewDesk.tsx";
+import Home from "./Home.tsx";
+const About = lazy(() => import("./About.tsx"));
+import { routeView, type View } from "./routes.ts";
+const Observatory = lazy(() => import("./Observatory.tsx"));
+const ProofTour = lazy(() => import("./ProofTour.tsx"));
+const ReviewDesk = lazy(() => import("./ReviewDesk.tsx"));
 import { CheckRow } from "./Checks.tsx";
 import { type Fixture, type Assistance, type LocalAI } from "./ui-data.ts";
-import MethodView from "./MethodView.tsx";
-import LedgerEvidence from "./LedgerEvidence.tsx";
+const MethodView = lazy(() => import("./MethodView.tsx"));
+const LedgerEvidence = lazy(() => import("./LedgerEvidence.tsx"));
 import useSnapshot from "./useSnapshot.ts";
 import type { Source, SourceIndex } from "./explorer-types.ts";
 
@@ -75,12 +71,6 @@ const none: Assistance = {
   confirmedByHuman: true,
   guidanceIds: [],
 };
-function routeTab(): "explore" | "proof" | "review" | "verify" | "method" {
-  const route = location.pathname.slice(1);
-  return ["proof", "review", "verify", "method"].includes(route)
-    ? (route as "proof" | "review" | "verify" | "method")
-    : "explore";
-}
 function historyPush(path: string) {
   window.history.pushState(null, "", path);
 }
@@ -91,10 +81,9 @@ export default function App() {
   const [packet, setPacket] = useState<Packet>();
   const [history, setHistory] = useState<Packet[]>([]);
   const [response, setResponse] = useState<HumanResponse>(emptyResponse);
-  const [tab, setTab] = useState<
-    "explore" | "proof" | "review" | "verify" | "method"
-  >(() => routeTab());
+  const [tab, setTab] = useState<View>(() => routeView());
   const [index, setIndex] = useState<SourceIndex>();
+  const indexValue = useRef<SourceIndex | undefined>(undefined);
   const [showLedgerEvidence, setShowLedgerEvidence] = useState(false);
   const snapshot = useSnapshot();
   const [busy, setBusy] = useState("");
@@ -118,16 +107,20 @@ export default function App() {
   const zip = useRef<Uint8Array | undefined>(undefined);
   const fileRef = useRef<HTMLInputElement>(null);
   const sourceRequest = useRef(0);
-  function navigate(value: typeof tab) {
+  const reviewRequest = useRef(0);
+  const example = useRef<Fixture | undefined>(undefined);
+  const moreMenu = useRef<HTMLDetailsElement>(null);
+  function navigate(value: View) {
+    moreMenu.current?.removeAttribute("open");
     setTab(value);
     setError("");
     setNotice("");
-    historyPush(value === "explore" ? "/" : `/${value}`);
+    historyPush(value === "home" ? "/" : `/${value}`);
     window.scrollTo({ top: 0, behavior: "instant" });
   }
   useEffect(() => {
     const pop = () => {
-      setTab(routeTab());
+      setTab(routeView());
       setError("");
     };
     window.addEventListener("popstate", pop);
@@ -141,7 +134,10 @@ export default function App() {
         return r.json();
       })
       .then((d) => {
-        if (live) setIndex(d);
+        if (live) {
+          indexValue.current = d;
+          setIndex(d);
+        }
       })
       .catch((e) => {
         if (live) setError(e.message);
@@ -207,7 +203,10 @@ export default function App() {
         return r.json();
       })
       .then((d: Fixture) => {
-        if (live) setFixture(d);
+        if (live) {
+          example.current = d;
+          setFixture(d);
+        }
       })
       .catch((e) => {
         if (live) setFatal(e.message);
@@ -254,6 +253,8 @@ export default function App() {
     return zip.current;
   }
   function changeClaim(part: Partial<Claim>) {
+    reviewRequest.current++;
+    setBusy((current) => (current === "review" ? "" : current));
     queryId.current++;
     setAiBusy(false);
     setClaim((c) => ({ ...c, ...part }));
@@ -266,27 +267,36 @@ export default function App() {
   }
   async function runReview() {
     if (!fixture) return;
+    const request = ++reviewRequest.current;
     setError("");
     setBusy("review");
     try {
       let records = fixture.records;
+      let knownSource = fixture.sources.some(
+        (s) => s.source_name === claim.sourceId,
+      );
       if (fixture.sources[0]?.source_name !== claim.sourceId) {
         records = await snapshot.sourceRecords(claim.sourceId);
-        const source = index?.sources.find((s) => s.id === claim.sourceId);
-        if (source)
-          setFixture({
-            manifest: fixture.manifest,
-            sources: [
-              {
-                source_name: source.id,
-                country: source.country,
-                sector: source.sector,
-                lat: source.lat,
-                lon: source.lon,
-              },
-            ],
-            records,
-          });
+        if (request !== reviewRequest.current) return;
+        knownSource = true; // The worker rejects IDs absent from the hash-checked source CSV.
+        const source = indexValue.current?.sources.find(
+          (s) => s.id === claim.sourceId,
+        );
+        setFixture({
+          manifest: fixture.manifest,
+          sources: [
+            {
+              source_name: claim.sourceId,
+              country:
+                source?.country ?? records[0]?.raw.country ?? "Not reported",
+              sector:
+                source?.sector ?? records[0]?.raw.sector ?? "Not reported",
+              lat: source?.lat ?? "",
+              lon: source?.lon ?? "",
+            },
+          ],
+          records,
+        });
       }
       const previous = history
         .filter((p) => p.payload.claim.sourceId === claim.sourceId)
@@ -302,17 +312,17 @@ export default function App() {
           assistance,
         },
         records,
-        index
-          ? index.sources.some((s) => s.id === claim.sourceId)
-          : fixture.sources.some((s) => s.source_name === claim.sourceId),
+        knownSource,
       );
+      if (request !== reviewRequest.current) return;
       setPacket(created);
       setResponse(emptyResponse);
-      setNotice("Evidence checked. Add your response to complete the review.");
+      setNotice("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not create review.");
+      if (request === reviewRequest.current)
+        setError(e instanceof Error ? e.message : "Could not create review.");
     } finally {
-      setBusy("");
+      if (request === reviewRequest.current) setBusy("");
     }
   }
   function requestAI() {
@@ -398,7 +408,7 @@ export default function App() {
       setClaim((c) => ({ ...c, kind: assistance.suggestedKind! }));
       setAssistance((a) => ({ ...a, confirmedByHuman: true }));
       setPacket(undefined);
-      setNotice("Claim type confirmed. Run the evidence check.");
+      setNotice("");
     }
   }
   async function finishResponse() {
@@ -433,7 +443,7 @@ export default function App() {
       ),
       completed,
     ]);
-    setNotice("Review completed. Physical mitigation remains unassessed.");
+    setNotice("Review saved.");
   }
   async function verify(text = verifyInput) {
     setBusy("verify");
@@ -455,8 +465,12 @@ export default function App() {
         ledger &&
         p.receipt.chainId === ledger.chainId &&
         p.receipt.contract.toLowerCase() === ledger.address.toLowerCase()
-      )
+      ) {
+        const { verifyAnchor } = await import(
+          "../../../packages/core/ledger.ts"
+        );
         result.anchor = await verifyAnchor(p, ledger.rpcUrl);
+      }
       setReport(result);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Invalid packet.");
@@ -484,9 +498,7 @@ export default function App() {
       digest: await digestPayload(payload),
     };
     await verify(JSON.stringify(changed));
-    setNotice(
-      "Adversarial copy: one record removed, result recomputed and payload rehashed. Original review unchanged.",
-    );
+    setNotice("One record removed. The edited file was rehashed.");
   }
   async function loadLedger() {
     setError("");
@@ -533,6 +545,9 @@ export default function App() {
               p.receipt &&
               p.payload.claim.sourceId === packet.payload.claim.sourceId,
           )?.receipt ?? null;
+      const { publishPacket } = await import(
+        "../../../packages/core/ledger.ts"
+      );
       const receipt = await publishPacket(
         packet,
         ledger,
@@ -581,7 +596,7 @@ export default function App() {
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            navigate("explore");
+            navigate("home");
           }}
         >
           <span className="brand-mark">
@@ -594,385 +609,391 @@ export default function App() {
         <nav aria-label="Main navigation">
           {(
             [
+              ["home", "Home"],
               ["explore", "Explore"],
-              ["proof", "Proof lab"],
               ["review", "Review desk"],
-              ["verify", "Verify a packet"],
-              ["method", "Method & limits"],
             ] as const
           ).map(([value, label]) => (
             <button
               key={value}
               className={tab === value ? "nav active" : "nav"}
-              onClick={() => {
-                navigate(value);
-                setError("");
-              }}
+              aria-current={tab === value ? "page" : undefined}
+              onClick={() => navigate(value)}
             >
               {label}
             </button>
           ))}
+          <details
+            className="more-menu"
+            ref={moreMenu}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                moreMenu.current?.removeAttribute("open");
+                moreMenu.current?.querySelector("summary")?.focus();
+              }
+            }}
+          >
+            <summary className="nav">More</summary>
+            <div className="more-menu-items">
+              <button onClick={() => navigate("proof")}>Proof lab</button>
+              <button onClick={() => navigate("verify")}>
+                Verify a packet
+              </button>
+              <button onClick={() => navigate("method")}>
+                Method &amp; limits
+              </button>
+              <button onClick={() => navigate("about")}>
+                About AfterPlume
+              </button>
+              <a
+                href="https://github.com/kathir-iTech/AfterPlume"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Source code <ArrowUpRight size={13} />
+              </a>
+            </div>
+          </details>
         </nav>
-        <a
-          className="source-link"
-          href="https://github.com/kathir-iTech/AfterPlume"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Open source <ArrowUpRight size={14} />
-        </a>
       </header>
-      <main className="page">
-        <div className="breadcrumb">
-          <Globe2 size={14} /> Public methane evidence{" "}
-          <ChevronRight size={13} />
-          <span>
-            {tab === "explore"
-              ? "Source explorer"
-              : tab === "proof"
-                ? "Proof lab"
-                : tab === "review"
-                  ? "Source review"
-                  : tab === "verify"
-                    ? "Independent replay"
-                    : "Method & limits"}
-          </span>
-          <span className="snapshot-tag">
-            <span className="dot" /> Snapshot · 12 OCT 2026
-          </span>
-        </div>
-        {notice && (
-          <div className="notice" role="status">
-            <Info size={16} />
-            <span>{notice}</span>
-            <button
-              className="icon-button"
-              aria-label="Dismiss notification"
-              onClick={() => setNotice("")}
-            >
-              <X size={15} />
-            </button>
-          </div>
-        )}
-        {error && (
-          <div className="error" role="alert">
-            <TriangleAlert size={18} />
-            <span>{error}</span>
-            <button
-              className="icon-button"
-              aria-label="Dismiss error"
-              onClick={() => setError("")}
-            >
-              <X size={15} />
-            </button>
-          </div>
-        )}
-        {tab === "explore" && (
-          <Observatory
-            index={index}
-            openSource={(source, start, end) =>
-              void openSource(source, start, end)
-            }
-            watchProof={() => navigate("proof")}
-            runBatch={snapshot.batch}
-            busy={busy === "source"}
-          />
-        )}
-        {tab === "proof" && (
-          <ProofTour
-            getZip={getZip}
-            openReview={() => {
-              const source = index?.sources.find(
-                (s) => s.id === initialClaim.sourceId,
-              );
-              if (source) void openSource(source);
-              else navigate("review");
-            }}
-            openLedger={() => {
-              setShowLedgerEvidence(true);
-              setTimeout(
-                () =>
-                  document
-                    .querySelector(".ledger-evidence")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" }),
-                0,
-              );
-            }}
-          />
-        )}
-        {tab === "review" && (
-          <ReviewDesk
-            setVerifyInput={setVerifyInput}
-            claim={claim}
-            packet={packet}
-            history={history}
-            response={response}
-            assistance={assistance}
-            busy={busy}
-            aiBusy={aiBusy}
-            aiStatus={aiStatus}
-            expanded={expanded}
-            fixture={fixture}
-            selected={selected}
-            latest={latest}
-            complete={complete}
-            guidance={guidance}
-            showHistory={showHistory}
-            setShowHistory={setShowHistory}
-            changeClaim={changeClaim}
-            requestAI={requestAI}
-            cancelAI={cancelAI}
-            confirmSuggestion={confirmSuggestion}
-            setAssistance={setAssistance}
-            runReview={runReview}
-            setExpanded={setExpanded}
-            navigate={navigate}
-            finishResponse={finishResponse}
-            setResponse={setResponse}
-            loadLedger={loadLedger}
-            verify={verify}
-            setHistory={setHistory}
-            setPacket={setPacket}
-            setNotice={setNotice}
-          />
-        )}
-        {tab === "verify" && (
-          <>
-            <section className="page-heading">
-              <div>
-                <p className="eyebrow">TRUST THE CHECK, NOT THE SCREENSHOT</p>
-                <h1>Replay the review.</h1>
-                <p className="intro">
-                  A valid hash can hide an omitted record.
-                  <br />
-                  Check the file, the full source snapshot and the external
-                  commitment separately.
-                </p>
-              </div>
+      <Suspense
+        fallback={
+          <main className="page route-loading" role="status">
+            Opening…
+          </main>
+        }
+      >
+        <main className="page">
+          {notice && (
+            <div className="notice" role="status">
+              <Info size={16} />
+              <span>{notice}</span>
               <button
-                className="button secondary"
-                onClick={() => fileRef.current?.click()}
+                className="icon-button"
+                aria-label="Dismiss notification"
+                onClick={() => setNotice("")}
               >
-                <Upload size={16} /> Import review packet
-              </button>
-            </section>
-            <div className="packaged-example">
-              <div>
-                <h2>Start with a working example.</h2>
-                <p>
-                  No JSON to paste. Load the original review, or run the guided
-                  omission test.
-                </p>
-              </div>
-              <button
-                className="button secondary"
-                disabled={!!busy}
-                onClick={async () => {
-                  try {
-                    const r = await fetch("/data/example-review.json");
-                    if (!r.ok) throw new Error("Example unavailable.");
-                    await verify(await r.text());
-                  } catch (e) {
-                    setError(
-                      e instanceof Error ? e.message : "Example unavailable.",
-                    );
-                  }
-                }}
-              >
-                Load example & verify
-              </button>
-              <button
-                className="button primary"
-                onClick={() => navigate("proof")}
-              >
-                Watch the omission test <ArrowRight size={16} />
+                <X size={15} />
               </button>
             </div>
-            <div className="verify-grid">
-              <section className="panel">
-                <div className="panel-heading">
-                  <FileJson size={18} />
-                  <h2>Review packet</h2>
+          )}
+          {error && (
+            <div className="error" role="alert">
+              <TriangleAlert size={18} />
+              <span>{error}</span>
+              <button
+                className="icon-button"
+                aria-label="Dismiss error"
+                onClick={() => setError("")}
+              >
+                <X size={15} />
+              </button>
+            </div>
+          )}
+          {tab === "home" && (
+            <Home
+              index={index}
+              records={example.current?.records ?? []}
+              watchProof={() => navigate("proof")}
+            />
+          )}
+          {tab === "about" && <About />}
+          {tab === "explore" && (
+            <Observatory
+              index={index}
+              openSource={(source, start, end) =>
+                void openSource(source, start, end)
+              }
+              watchProof={() => navigate("proof")}
+              runBatch={snapshot.batch}
+              busy={busy === "source"}
+            />
+          )}
+          {tab === "proof" && (
+            <ProofTour
+              getZip={getZip}
+              openReview={() => {
+                const source = index?.sources.find(
+                  (s) => s.id === initialClaim.sourceId,
+                );
+                if (source) void openSource(source);
+                else navigate("review");
+              }}
+              openLedger={() => {
+                setShowLedgerEvidence(true);
+                setTimeout(
+                  () =>
+                    document
+                      .querySelector(".ledger-evidence")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                  0,
+                );
+              }}
+            />
+          )}
+          {tab === "review" && (
+            <ReviewDesk
+              setVerifyInput={setVerifyInput}
+              claim={claim}
+              packet={packet}
+              history={history}
+              response={response}
+              assistance={assistance}
+              busy={busy}
+              aiBusy={aiBusy}
+              aiStatus={aiStatus}
+              expanded={expanded}
+              fixture={fixture}
+              selected={selected}
+              latest={latest}
+              complete={complete}
+              guidance={guidance}
+              showHistory={showHistory}
+              setShowHistory={setShowHistory}
+              changeClaim={changeClaim}
+              requestAI={requestAI}
+              cancelAI={cancelAI}
+              confirmSuggestion={confirmSuggestion}
+              setAssistance={setAssistance}
+              runReview={runReview}
+              setExpanded={setExpanded}
+              navigate={navigate}
+              finishResponse={finishResponse}
+              setResponse={setResponse}
+              loadLedger={loadLedger}
+              verify={verify}
+              setHistory={setHistory}
+              setPacket={setPacket}
+              setNotice={setNotice}
+            />
+          )}
+          {tab === "verify" && (
+            <>
+              <section className="page-heading">
+                <div>
+                  <h1>Verify a review.</h1>
+                  <p className="intro">
+                    Import a review and check it against the source data.
+                  </p>
                 </div>
-                <input
-                  ref={fileRef}
-                  className="visually-hidden"
-                  type="file"
-                  accept="application/json,.json"
-                  onChange={async (e) => {
-                    const f = e.target.files?.[0];
-                    if (!f) return;
-                    if (f.size > 12_000_000) {
-                      setError("Packet exceeds 12 MB.");
-                      return;
-                    }
-                    setVerifyInput(await f.text());
-                    setReport(undefined);
-                  }}
-                />
-                <label className="field-label" htmlFor="packet-json">
-                  Paste exported JSON or import a file
-                </label>
-                <textarea
-                  className="json-input"
-                  id="packet-json"
-                  value={verifyInput}
-                  onChange={(e) => {
-                    setVerifyInput(e.target.value);
-                    setReport(undefined);
-                  }}
-                  placeholder={'{\n  "payload": { ... },\n  "digest": "..."\n}'}
-                />
                 <button
-                  className="button primary full"
-                  disabled={!verifyInput || !!busy}
-                  onClick={() => verify()}
+                  className="button secondary"
+                  onClick={() => fileRef.current?.click()}
                 >
-                  {busy === "verify" ? (
-                    <LoaderCircle className="spin" size={17} />
-                  ) : (
-                    <ShieldCheck size={17} />
-                  )}{" "}
-                  Verify against full snapshot
+                  <Upload size={16} /> Import review packet
                 </button>
-                <p className="field-help">
-                  The first check loads the pinned 10.8 MB source ZIP. Imported
-                  links are never fetched.
-                </p>
-                <label className="snapshot-upload">
-                  <Upload size={14} /> Supply the pinned snapshot ZIP
+              </section>
+              <div className="packaged-example">
+                <div>
+                  <h2>Start with a working example.</h2>
+                  <p>Try the original review without importing a file.</p>
+                </div>
+                <button
+                  className="button secondary"
+                  disabled={!!busy}
+                  onClick={async () => {
+                    try {
+                      const r = await fetch("/data/example-review.json");
+                      if (!r.ok) throw new Error("Example unavailable.");
+                      await verify(await r.text());
+                    } catch (e) {
+                      setError(
+                        e instanceof Error ? e.message : "Example unavailable.",
+                      );
+                    }
+                  }}
+                >
+                  Load example & verify
+                </button>
+              </div>
+              <div className="verify-grid">
+                <section className="panel">
+                  <div className="panel-heading">
+                    <FileJson size={18} />
+                    <h2>Review packet</h2>
+                  </div>
                   <input
+                    ref={fileRef}
+                    className="visually-hidden"
                     type="file"
-                    accept=".zip"
+                    accept="application/json,.json"
                     onChange={async (e) => {
                       const f = e.target.files?.[0];
                       if (!f) return;
-                      if (f.size > 20_000_000) {
-                        setError("Snapshot exceeds 20 MB.");
+                      if (f.size > 12_000_000) {
+                        setError("Packet exceeds 12 MB.");
                         return;
                       }
-                      zip.current = new Uint8Array(await f.arrayBuffer());
-                      setReport(undefined);
-                      setNotice(
-                        "Snapshot supplied. Its SHA-256 will be checked before any ZIP member is unpacked.",
-                      );
+                      await verify(await f.text());
                     }}
                   />
-                </label>
-              </section>
-              <section className="panel verification-results">
-                <div className="panel-heading">
-                  <ShieldCheck size={18} />
-                  <h2>Three separate checks</h2>
-                </div>
-                {report ? (
-                  <>
-                    <CheckRow
-                      label="1. Packet integrity"
-                      check={report.integrity}
+                  <details className="json-disclosure">
+                    <summary>Paste JSON instead</summary>
+                    <label className="field-label" htmlFor="packet-json">
+                      Paste exported JSON or import a file
+                    </label>
+                    <textarea
+                      className="json-input"
+                      id="packet-json"
+                      value={verifyInput}
+                      onChange={(e) => {
+                        setVerifyInput(e.target.value);
+                        setReport(undefined);
+                      }}
+                      placeholder={
+                        '{\n  "payload": { ... },\n  "digest": "..."\n}'
+                      }
                     />
-                    <CheckRow
-                      label="2. Source inclusion & replay"
-                      check={report.snapshot}
+                  </details>
+                  <button
+                    className="button primary full"
+                    disabled={!verifyInput || !!busy}
+                    onClick={() => verify()}
+                  >
+                    {busy === "verify" ? (
+                      <LoaderCircle className="spin" size={17} />
+                    ) : (
+                      <ShieldCheck size={17} />
+                    )}{" "}
+                    Verify against full snapshot
+                  </button>
+                  <p className="field-help">
+                    The first check loads the pinned 10.8 MB source ZIP.
+                    Imported links are never fetched.
+                  </p>
+                  <label className="snapshot-upload">
+                    <Upload size={14} /> Supply the pinned snapshot ZIP
+                    <input
+                      type="file"
+                      accept=".zip"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        if (f.size > 20_000_000) {
+                          setError("Snapshot exceeds 20 MB.");
+                          return;
+                        }
+                        zip.current = new Uint8Array(await f.arrayBuffer());
+                        setReport(undefined);
+                        setNotice(
+                          "Snapshot supplied. Its SHA-256 will be checked before any ZIP member is unpacked.",
+                        );
+                      }}
                     />
-                    <CheckRow
-                      label="3. External commitment"
-                      check={report.anchor}
-                    />
-                    <div className="verification-summary">
-                      <Info size={16} />
+                  </label>
+                </section>
+                <section className="panel verification-results">
+                  <div className="panel-heading">
+                    <ShieldCheck size={18} />
+                    <h2>Three separate checks</h2>
+                  </div>
+                  {report ? (
+                    <>
+                      <CheckRow
+                        label="File integrity"
+                        check={report.integrity}
+                      />
+                      <CheckRow
+                        label="Source completeness"
+                        check={report.snapshot}
+                      />
+                      <CheckRow
+                        label="Optional blockchain record"
+                        check={report.anchor}
+                      />
+                    </>
+                  ) : (
+                    <div className="finding-empty">
+                      <ShieldCheck size={43} strokeWidth={1.1} />
+                      <h3>Import a review.</h3>
                       <p>
-                        A source match establishes completeness within the
-                        pinned snapshot. Neither this verifier nor a blockchain
-                        record certifies physical mitigation.
+                        The verifier reconstructs the source selection and
+                        finding. No account or author’s app state is required.
                       </p>
                     </div>
-                  </>
-                ) : (
-                  <div className="finding-empty">
-                    <ShieldCheck size={43} strokeWidth={1.1} />
-                    <h3>Bring your own packet.</h3>
-                    <p>
-                      The verifier reconstructs the source selection and
-                      finding. No account or author’s app state is required.
-                    </p>
-                  </div>
-                )}
-                <div className="attack-card">
-                  <FlaskConical size={20} />
+                  )}
+                  <details className="disclosure">
+                    <summary>Try removing a record</summary>
+                    <div className="attack-card">
+                      <FlaskConical size={20} />
+                      <div>
+                        <h3>Try a harder edit</h3>
+                        <p>
+                          Remove a matching record, recompute the result and
+                          rehash the file. Integrity can pass. Source inclusion
+                          should fail.
+                        </p>
+                        <button
+                          className="button secondary"
+                          disabled={
+                            !!busy ||
+                            !(verifyPacketValue ?? packet)?.payload.records
+                              .length
+                          }
+                          onClick={attack}
+                        >
+                          Omit a record & rehash <ArrowRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </details>
+                </section>
+              </div>
+              <details className="cli-disclosure">
+                <summary>Verify from a terminal</summary>
+                <div className="cli-note">
+                  <FileCheck2 size={18} />
                   <div>
-                    <h3>Try a harder edit</h3>
-                    <p>
-                      Remove a matching record, recompute the result and rehash
-                      the file. Integrity can pass. Source inclusion should
-                      fail.
-                    </p>
-                    <button
-                      className="button secondary"
-                      disabled={
-                        !!busy ||
-                        !(verifyPacketValue ?? packet)?.payload.records.length
-                      }
-                      onClick={attack}
-                    >
-                      Omit a record & rehash <ArrowRight size={14} />
-                    </button>
+                    <strong>Replay outside the browser</strong>
+                    <code>
+                      npm run verify -- review.json
+                      apps/web/public/data/mars-snapshot.zip
+                    </code>
+                    <span>
+                      The CLI is a separate entry point using the same
+                      documented evidence policy.
+                    </span>
                   </div>
                 </div>
-              </section>
+              </details>
+            </>
+          )}
+          {tab === "method" && <MethodView manifest={fixture.manifest} />}
+          {showLedgerEvidence && (
+            <LedgerEvidence onClose={() => setShowLedgerEvidence(false)} />
+          )}
+          {showLedger && ledger && (
+            <>
+              <LedgerPanel
+                config={ledger}
+                packet={packet}
+                busy={busy === "chain"}
+                publish={publish}
+                onClose={() => setShowLedger(false)}
+                onError={setError}
+              />
+              {chainMessage && (
+                <p className="chain-message" role="status">
+                  {chainMessage}
+                </p>
+              )}
+            </>
+          )}
+          <footer>
+            <div>
+              <span className="footer-brand">AfterPlume</span>
             </div>
-            <div className="cli-note">
-              <FileCheck2 size={18} />
-              <div>
-                <strong>Replay outside the browser</strong>
-                <code>
-                  npm run verify -- review.json
-                  apps/web/public/data/mars-snapshot.zip
-                </code>
-                <span>
-                  The CLI is a separate entry point using the same documented
-                  evidence policy.
-                </span>
-              </div>
-            </div>
-          </>
-        )}
-        {tab === "method" && <MethodView manifest={fixture.manifest} />}
-        {showLedgerEvidence && (
-          <LedgerEvidence onClose={() => setShowLedgerEvidence(false)} />
-        )}
-        {showLedger && ledger && (
-          <>
-            <LedgerPanel
-              config={ledger}
-              packet={packet}
-              busy={busy === "chain"}
-              publish={publish}
-              onClose={() => setShowLedger(false)}
-              onError={setError}
-            />
-            {chainMessage && (
-              <p className="chain-message" role="status">
-                {chainMessage}
-              </p>
-            )}
-          </>
-        )}
-        <footer>
-          <div>
-            <span className="footer-brand">AfterPlume</span>
-            <span>Evidence before assurance.</span>
-          </div>
-          <span>UNEP public data · Noncommercial research prototype</span>
-          <a
-            href="https://github.com/kathir-iTech/AfterPlume"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Source & reproducibility <ArrowUpRight size={12} />
-          </a>
-        </footer>
-      </main>
+            <span>Data: UNEP MARS · Noncommercial prototype</span>
+            <a
+              href="https://github.com/kathir-iTech/AfterPlume"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Source code <ArrowUpRight size={12} />
+            </a>
+          </footer>
+        </main>
+      </Suspense>
     </>
   );
 }

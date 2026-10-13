@@ -88,89 +88,21 @@ export default function Observatory({
   }
   return (
     <>
-      <section className="observatory-hero">
-        <div className="hero-copy">
-          <p className="eyebrow">
-            <span className="live-dot" /> CLIMATE CLAIMS · OPEN EVIDENCE
-          </p>
-          <h1>
-            A report can hide
-            <br />a plume.
-            <br />
-            <em>Replay catches it.</em>
-          </h1>
-          <p className="hero-description">
-            Check methane statements against public satellite observations. Even
-            a freshly rehashed report can leave out evidence.
-          </p>
-          <div className="hero-actions">
-            <button className="button primary" onClick={watchProof}>
-              <ShieldCheck size={18} /> Watch the proof <ArrowRight size={18} />
-            </button>
-            <a className="button secondary" href="#sources">
-              Explore sources
-            </a>
+      <section id="sources" className="source-explorer">
+        <div className="section-heading">
+          <div>
+            <h1>Explore methane sources.</h1>
+            <p>Find a source. Open its observations.</p>
           </div>
-          <p className="hero-footnote">
-            Real observations. Clearly hypothetical claims. No account needed.
-          </p>
+          <span className="pill teal">
+            <Globe2 size={13} /> {filtered.length.toLocaleString()} sources
+          </span>
         </div>
         <WorldMap
           sources={filtered}
           selected={active}
           onSelect={(s) => setSelected(s)}
         />
-      </section>
-      <section className="scale-strip" aria-label="Dataset scale">
-        <div>
-          <strong>
-            {index?.manifest.recordCount.toLocaleString() ?? "30,319"}
-          </strong>
-          <span>satellite detection records</span>
-        </div>
-        <div>
-          <strong>
-            {index?.manifest.sourceCount.toLocaleString() ?? "4,211"}
-          </strong>
-          <span>provider-assigned sources</span>
-        </div>
-        <div>
-          <strong>{countries.length || "—"}</strong>
-          <span>countries in this snapshot</span>
-        </div>
-        <div>
-          <strong>12 OCT 2026</strong>
-          <span>captured · hash-pinned archive</span>
-        </div>
-      </section>
-      <section className="proof-invitation">
-        <div className="invitation-icon">
-          <ShieldCheck size={26} />
-        </div>
-        <div>
-          <h2>A valid hash isn’t the whole story.</h2>
-          <p>
-            Remove a detection. Recompute the result. Rebuild the hash. See
-            which check catches the missing evidence.
-          </p>
-        </div>
-        <button className="button secondary" onClick={watchProof}>
-          Run the omission test <ArrowUpRight size={17} />
-        </button>
-      </section>
-      <section id="sources" className="source-explorer">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">EXPLORE THE SNAPSHOT</p>
-            <h2>Every source. A review you can replay.</h2>
-            <p>
-              Search a location, select a map point, or open any source below.
-            </p>
-          </div>
-          <span className="pill teal">
-            <Globe2 size={13} /> {filtered.length.toLocaleString()} sources
-          </span>
-        </div>
         <div className="explorer-filters">
           <label className="search-field">
             <Search size={18} />
@@ -269,7 +201,7 @@ export default function Observatory({
                 </tr>
               </thead>
               <tbody>
-                {filtered.slice(page * 15, (page + 1) * 15).map((s) => (
+                {filtered.slice(page * 6, (page + 1) * 6).map((s) => (
                   <tr key={s.id} onMouseEnter={() => setSelected(s)}>
                     <td>
                       <button
@@ -316,10 +248,10 @@ export default function Observatory({
             </table>
           </div>
         )}
-        {filtered.length > 15 && (
+        {filtered.length > 6 && (
           <div className="pagination">
             <span>
-              {page * 15 + 1}–{Math.min((page + 1) * 15, filtered.length)} of{" "}
+              {page * 6 + 1}–{Math.min((page + 1) * 6, filtered.length)} of{" "}
               {filtered.length.toLocaleString()}
             </span>
             <div>
@@ -332,7 +264,7 @@ export default function Observatory({
               </button>
               <button
                 className="button secondary"
-                disabled={(page + 1) * 15 >= filtered.length}
+                disabled={(page + 1) * 6 >= filtered.length}
                 onClick={() => setPage((p) => p + 1)}
               >
                 Next
@@ -341,101 +273,104 @@ export default function Observatory({
           </div>
         )}
       </section>
-      <section className="batch-panel panel">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">ONE INTERVAL · THE ENTIRE SNAPSHOT</p>
-            <h2>Check all {sources.length.toLocaleString()} sources.</h2>
-            <p>
-              Apply the same “no recorded detections” test to every source.
-              These are hypothetical checks, not statements made by operators.
-            </p>
+      <details className="batch-disclosure disclosure">
+        <summary>Check an interval across all sources</summary>
+        <section className="batch-panel panel">
+          <div className="section-heading">
+            <div>
+              <h2>Check all {sources.length.toLocaleString()} sources.</h2>
+              <p>
+                One hypothetical interval check, applied to the full catalogue.
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="batch-controls">
-          <label>
-            Start · included
-            <input
-              type="date"
-              value={start}
-              onChange={(e) => {
-                setStart(e.target.value);
-              }}
-            />
-          </label>
-          <label>
-            End · excluded
-            <input
-              type="date"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-            />
-          </label>
-          <button
-            className="button primary"
-            disabled={batchBusy || !index || !start || !end || start >= end}
-            onClick={async () => {
-              setBatchBusy(true);
-              setError("");
-              try {
-                const rows = await runBatch(start, end);
-                if (rows.some((r) => r.status === "INVALID_INPUT"))
-                  throw new Error(
-                    "Choose valid calendar dates, with start before end.",
+          <div className="batch-controls">
+            <label>
+              Start · included
+              <input
+                type="date"
+                value={start}
+                onChange={(e) => {
+                  setStart(e.target.value);
+                }}
+              />
+            </label>
+            <label>
+              End · excluded
+              <input
+                type="date"
+                value={end}
+                onChange={(e) => setEnd(e.target.value)}
+              />
+            </label>
+            <button
+              className="button primary"
+              disabled={batchBusy || !index || !start || !end || start >= end}
+              onClick={async () => {
+                setBatchBusy(true);
+                setError("");
+                try {
+                  const rows = await runBatch(start, end);
+                  if (rows.some((r) => r.status === "INVALID_INPUT"))
+                    throw new Error(
+                      "Choose valid calendar dates, with start before end.",
+                    );
+                  setBatch(rows);
+                  setEvaluatedInterval({ start, end });
+                } catch (e) {
+                  setError(
+                    e instanceof Error ? e.message : "Batch check failed.",
                   );
-                setBatch(rows);
-                setEvaluatedInterval({ start, end });
-              } catch (e) {
-                setError(
-                  e instanceof Error ? e.message : "Batch check failed.",
-                );
-              } finally {
-                setBatchBusy(false);
-              }
-            }}
-          >
-            {batchBusy ? (
-              <LoaderCircle className="spin" size={17} />
-            ) : (
-              <ShieldCheck size={17} />
-            )}{" "}
-            {batchBusy ? "Checking the full archive…" : "Run all-source check"}
-          </button>
-        </div>
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
-        {batch && (
-          <div className="batch-result" role="status">
-            <div>
-              <strong>{batch.length.toLocaleString()}</strong>
-              <span>sources checked</span>
-            </div>
-            <div>
-              <strong className="red-text">
-                {batch.filter((r) => r.count > 0).length.toLocaleString()}
-              </strong>
-              <span>have detections in interval</span>
-            </div>
-            <div>
-              <strong>
-                {batch.filter((r) => r.count === 0).length.toLocaleString()}
-              </strong>
-              <span>have no matching records</span>
-            </div>
-            <button className="button secondary" onClick={exportBatch}>
-              <Download size={16} /> Export results
+                } finally {
+                  setBatchBusy(false);
+                }
+              }}
+            >
+              {batchBusy ? (
+                <LoaderCircle className="spin" size={17} />
+              ) : (
+                <ShieldCheck size={17} />
+              )}{" "}
+              {batchBusy
+                ? "Checking the full archive…"
+                : "Run all-source check"}
             </button>
-            <p>
-              {evaluatedInterval?.start} included → {evaluatedInterval?.end}{" "}
-              excluded. Original ZIP hash checked before parsing. No matching
-              records does not establish zero emissions.
-            </p>
           </div>
-        )}
-      </section>
+          {error && (
+            <p className="error" role="alert">
+              {error}
+            </p>
+          )}
+          {batch && (
+            <div className="batch-result" role="status">
+              <div>
+                <strong>{batch.length.toLocaleString()}</strong>
+                <span>sources checked</span>
+              </div>
+              <div>
+                <strong className="red-text">
+                  {batch.filter((r) => r.count > 0).length.toLocaleString()}
+                </strong>
+                <span>have detections in interval</span>
+              </div>
+              <div>
+                <strong>
+                  {batch.filter((r) => r.count === 0).length.toLocaleString()}
+                </strong>
+                <span>have no matching records</span>
+              </div>
+              <button className="button secondary" onClick={exportBatch}>
+                <Download size={16} /> Export results
+              </button>
+              <p>
+                {evaluatedInterval?.start} included → {evaluatedInterval?.end}{" "}
+                excluded. Original ZIP hash checked before parsing. No matching
+                records does not establish zero emissions.
+              </p>
+            </div>
+          )}
+        </section>
+      </details>
     </>
   );
 }

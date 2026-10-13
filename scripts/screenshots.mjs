@@ -51,7 +51,7 @@ await page.screenshot({
   ),
   fullPage: true,
 });
-await page.getByRole("button", { name: "Replay this review" }).click();
+await page.getByRole("button", { name: "Verify this review" }).click();
 await page.locator(".verification-check.match").last().waitFor();
 await page.screenshot({
   path: new URL("04-source-replay.png", root).pathname.replace(
@@ -60,6 +60,7 @@ await page.screenshot({
   ),
   fullPage: true,
 });
+await page.getByText("Try removing a record", { exact: true }).click();
 await page.getByRole("button", { name: "Omit a record & rehash" }).click();
 await page.locator(".verification-check.mismatch").waitFor();
 await page.screenshot({
@@ -81,7 +82,7 @@ await page.screenshot({
 await page.setViewportSize({ width: 1440, height: 1000 });
 await page.goto(process.env.BASE_URL ?? "http://127.0.0.1:5173");
 await page.locator('canvas[data-outline-ready="true"]').waitFor();
-await page.locator(".source-table tbody tr").first().waitFor();
+await page.locator(".home-visual").waitFor();
 await page.screenshot({
   path: new URL("07-observatory.png", root).pathname.replace(
     /^\/([A-Za-z]:)/,
@@ -116,7 +117,18 @@ await page.screenshot({
   ),
   fullPage: true,
 });
+await page.goto(
+  new URL("/explore", process.env.BASE_URL ?? "http://127.0.0.1:5173").href,
+);
+await page.locator(".source-table tbody tr").first().waitFor();
+await page.screenshot({
+  path: new URL("10-source-explorer.png", root).pathname.replace(
+    /^\/([A-Za-z]:)/,
+    "$1",
+  ),
+  fullPage: true,
+});
 await browser.close();
 console.log(
-  "Nine screenshots and a social preview captured from the working application.",
+  "Ten screenshots and a social preview captured from the working application.",
 );

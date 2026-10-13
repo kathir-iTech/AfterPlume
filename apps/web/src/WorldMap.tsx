@@ -9,10 +9,12 @@ export default function WorldMap({
   sources,
   selected,
   onSelect,
+  preview = false,
 }: {
   sources: Source[];
   selected?: Source;
   onSelect: (s: Source) => void;
+  preview?: boolean;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [paths, setPaths] = useState<Path2D[]>([]);
@@ -152,7 +154,7 @@ export default function WorldMap({
     });
   }
   return (
-    <div className="world-map">
+    <div className={preview ? "world-map map-preview" : "world-map"}>
       <div className="map-topline">
         <span>
           <i className="live-dot" /> PINNED SATELLITE SNAPSHOT
@@ -162,7 +164,12 @@ export default function WorldMap({
       <canvas
         ref={canvas}
         data-outline-ready={paths.length > 0}
-        aria-label="World map of UNEP methane sources. Select sources with the searchable list below, or click a map point."
+        role="img"
+        aria-label={
+          preview
+            ? "Public methane source locations. Open Explore to select a source."
+            : "World map of UNEP methane sources. Select with the searchable list below or click a point."
+        }
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           drag.current = {

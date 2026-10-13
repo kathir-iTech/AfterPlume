@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://afterplume.vercel.app/sitemap.xml

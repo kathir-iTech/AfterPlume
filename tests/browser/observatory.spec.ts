@@ -14,6 +14,7 @@ test("failed model downloads preserve accepted keyword provenance", async ({
     .getByRole("button", { name: "Suggest a claim type locally" })
     .click();
   await page.getByRole("button", { name: "Confirm", exact: true }).click();
+  await page.getByText("Local assistance details", { exact: false }).click();
   await expect(page.getByText(/Local model unavailable/)).toBeVisible();
   await expect(page.getByLabel("Confirmed claim type")).toHaveValue(
     "reduction_percent",
@@ -44,6 +45,7 @@ test("result card exports a real PNG summary of the current review", async ({
   await page.goto("/review");
   await page.getByRole("button", { name: "Run evidence check" }).click();
   const event = page.waitForEvent("download");
+  await page.getByText("More actions", { exact: true }).click();
   await page
     .getByRole("button", { name: "Download result card", exact: true })
     .click();
@@ -130,6 +132,9 @@ test("proof lab performs actual replay and catches a freshly rehashed omission",
   await expect(page.locator(".proof-count").first()).toContainText("3");
   await expect(page.locator(".proof-count").last()).toContainText("2");
   await page
+    .getByText("Inspect the files and technical checks", { exact: true })
+    .click();
+  await page
     .getByRole("button", { name: "See registry lifecycle evidence" })
     .click();
   await expect(
@@ -140,7 +145,10 @@ test("proof lab performs actual replay and catches a freshly rehashed omission",
 test("all-source batch runs against the archive and exports reproducible rows", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/explore");
+  await page
+    .getByText("Check an interval across all sources", { exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Run all-source check", exact: true })
     .click();
@@ -185,6 +193,7 @@ test("mobile explorer and reduced-motion proof remain usable", async ({
   await expect(
     page.getByRole("button", { name: "Watch the proof", exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Explore", exact: true }).click();
   await page.getByLabel("Search sources").fill("not-a-real-source");
   await expect(
     page.getByRole("heading", { name: "No sources match those filters." }),
@@ -194,6 +203,7 @@ test("mobile explorer and reduced-motion proof remain usable", async ({
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  await page.getByRole("button", { name: "Home", exact: true }).click();
   await page
     .getByRole("button", { name: "Watch the proof", exact: true })
     .click();

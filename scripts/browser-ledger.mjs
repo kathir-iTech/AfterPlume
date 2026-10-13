@@ -60,6 +60,7 @@ await page.getByRole("button", { name: "Complete this review" }).click();
 await page
   .getByText("Statement corrected or narrowed", { exact: true })
   .waitFor();
+await page.getByText("More actions", { exact: true }).click();
 await page
   .getByRole("button", { name: "Optional blockchain publication" })
   .click();

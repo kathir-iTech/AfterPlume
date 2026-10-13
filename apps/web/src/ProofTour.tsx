@@ -4,7 +4,6 @@ import {
   Check,
   Download,
   LoaderCircle,
-  Play,
   RotateCcw,
   Square,
   X,
@@ -20,11 +19,11 @@ import {
   type Verification,
 } from "../../../packages/verifier/index.ts";
 const steps = [
-  "Load the example",
-  "Replay the original",
-  "Remove one record",
-  "Rehash the edited copy",
-  "Replay catches the omission",
+  "Opening the example…",
+  "Checking the original against the source…",
+  "Removing one observation…",
+  "Rebuilding the edited file’s hash…",
+  "Checking for missing evidence…",
 ];
 function save(packet: Packet, name: string) {
   const url = URL.createObjectURL(
@@ -139,240 +138,206 @@ export default function ProofTour({
     };
   }, []);
   return (
-    <section className="proof-tour">
+    <section className="proof-tour focused-proof">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">THE PROOF LAB · ACTUAL PACKET REPLAY</p>
+          <span className="example-tag">
+            Interactive example · real observations
+          </span>
           <h1>
-            Can a missing plume
+            One missing record.
             <br />
-            <em>survive a new hash?</em>
+            <em>Caught.</em>
           </h1>
           <p>
-            A hypothetical “no detections” statement meets three real satellite
-            records. Then we remove one.
+            We remove an observation and rebuild the file’s hash. The source
+            check catches the omission.
           </p>
         </div>
         <button
-          className="button secondary"
+          className="text-button proof-control"
           onClick={() =>
             running ? (epoch.current++, setRunning(false)) : void run()
           }
         >
-          {running ? (
-            <Square size={16} />
-          ) : after ? (
-            <RotateCcw size={16} />
-          ) : (
-            <Play size={16} />
-          )}{" "}
-          {running ? "Stop tour" : after ? "Replay tour" : "Run tour"}
+          {running ? <Square size={14} /> : <RotateCcw size={14} />}{" "}
+          {running ? "Stop" : "Replay"}
         </button>
       </div>
-      <ol className="proof-steps">
-        {steps.map((s, i) => (
-          <li
-            key={s}
-            className={
-              stage > i || after ? "done" : stage === i ? "current" : ""
-            }
-          >
-            <span>
-              {stage > i || after ? (
-                <Check size={15} />
-              ) : stage === i && running ? (
-                <LoaderCircle size={15} className="spin" />
-              ) : (
-                i + 1
-              )}
-            </span>
-            {s}
-          </li>
-        ))}
-      </ol>
+      <div className="proof-progress" role="status">
+        <span>
+          {running
+            ? steps[Math.max(stage, 0)]
+            : after
+              ? "Source check complete"
+              : "Tour stopped"}
+        </span>
+        {running && <LoaderCircle size={15} className="spin" />}
+      </div>
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
       )}
-      {after && (
-        <div className="proof-verdict" role="status">
-          <X size={25} />
-          <div>
-            <strong>The missing record was caught.</strong>
-            <p>
-              Edited file integrity: <b>{after.integrity.status}</b> ·
-              Full-source inclusion: <b>{after.snapshot.status}</b>
-            </p>
-          </div>
-          <span className="pill red">ACTUAL REPLAY RESULT</span>
-        </div>
-      )}
       <div className="proof-comparison">
-        <article className="proof-packet original">
-          <div className="packet-head">
-            <span className="eyebrow">01 · ORIGINAL REVIEW</span>
-            <span className="pill teal">
-              {before ? "Replay complete" : "Example packet"}
-            </span>
-          </div>
-          <div className="proof-count">
-            {original?.payload.records.length ?? "—"}
-            <span>matching detections</span>
-          </div>
-          <p>
-            {original?.payload.claim.sourceId ?? "AZE_S_010"} · 1 May → 1 June
-            2026 inclusive
-          </p>
-          <div className="proof-records">
-            {original?.payload.records.map((r) => (
-              <div key={r.id}>
-                <span>{r.acquired.slice(0, 10)}</span>
-                <strong>{r.satellite.split(" - ")[0]}</strong>
-                <span>
-                  {r.rate
-                    ? `${Number(r.rate).toLocaleString()} kg/h`
-                    : "rate not reported"}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="proof-checks">
-            <p>
-              <Check size={17} />
-              <span>File integrity</span>
-              <strong>{before?.integrity.status ?? "Waiting"}</strong>
-            </p>
-            <p>
-              <Check size={17} />
-              <span>Full-source inclusion</span>
-              <strong>{before?.snapshot.status ?? "Waiting"}</strong>
-            </p>
-          </div>
-          {original && (
-            <details className="digest-detail">
-              <summary>Inspect the original digest</summary>
-              <code>{original.digest}</code>
-            </details>
-          )}
-        </article>
-        <article className={`proof-packet edited ${after ? "revealed" : ""}`}>
-          <div className="packet-head">
-            <span className="eyebrow">02 · EDITED & REHASHED</span>
-            <span className={`pill ${after ? "red" : "neutral"}`}>
-              {after ? "Omission caught" : "Adversarial copy"}
-            </span>
-          </div>
-          <div className="proof-count">
-            {edited?.payload.records.length ?? "—"}
-            <span>detections left in the packet</span>
-          </div>
-          <p>
-            The last observation is removed. The finding and digest are
-            recomputed.
-          </p>
-          <div className="proof-records">
-            {original?.payload.records.map((r, i) => (
-              <div
-                key={r.id}
-                className={
-                  stage >= 2 && i === original.payload.records.length - 1
-                    ? "removed"
-                    : ""
-                }
-              >
-                <span>{r.acquired.slice(0, 10)}</span>
-                <strong>{r.satellite.split(" - ")[0]}</strong>
-                <span>
-                  {stage >= 2 && i === original.payload.records.length - 1
-                    ? "REMOVED"
-                    : r.rate
-                      ? `${Number(r.rate).toLocaleString()} kg/h`
-                      : "rate not reported"}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="proof-checks">
-            <p>
-              <Check size={17} />
-              <span>File integrity</span>
-              <strong>{after?.integrity.status ?? "Waiting"}</strong>
-            </p>
-            <p className={after ? "mismatch" : ""}>
-              <X size={17} />
-              <span>Full-source inclusion</span>
-              <strong>{after?.snapshot.status ?? "Waiting"}</strong>
-            </p>
-          </div>
-          {edited && (
-            <details className="digest-detail">
-              <summary>Inspect the rebuilt digest</summary>
-              <code>{edited.digest}</code>
-            </details>
-          )}
-        </article>
+        {(
+          [
+            {
+              kind: "original",
+              title: "Original review",
+              value: original,
+              result: before,
+            },
+            {
+              kind: "edited",
+              title: "One record removed",
+              value: edited,
+              result: after,
+            },
+          ] as const
+        ).map(({ kind, title, value, result }) => (
+          <article
+            key={kind}
+            className={`proof-packet ${kind} ${kind === "edited" && after ? "revealed" : ""}`}
+          >
+            <div className="packet-head">
+              <h2>{title}</h2>
+            </div>
+            <div className="proof-count">
+              {value?.payload.records.length ?? "—"}
+              <span>
+                {kind === "original"
+                  ? "observations included"
+                  : "observations remaining"}
+              </span>
+            </div>
+            <div className="proof-records">
+              {original?.payload.records.map((r, i) => {
+                const removed =
+                  kind === "edited" &&
+                  stage >= 2 &&
+                  i === original.payload.records.length - 1;
+                return (
+                  <div key={r.id} className={removed ? "removed" : ""}>
+                    <span>{r.acquired.slice(0, 10)}</span>
+                    <strong>{r.satellite.split(" - ")[0]}</strong>
+                    <span>
+                      {removed
+                        ? "Removed"
+                        : r.rate
+                          ? `${Number(r.rate).toLocaleString()} kg/h`
+                          : "Rate unreported"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="proof-checks">
+              {(
+                [
+                  { label: "File hash", status: result?.integrity.status },
+                  {
+                    label: "Source completeness",
+                    status: result?.snapshot.status,
+                  },
+                ] as const
+              ).map((check) => (
+                <p
+                  key={check.label}
+                  className={
+                    check.status === "MISMATCH"
+                      ? "mismatch"
+                      : check.status
+                        ? "match"
+                        : "pending"
+                  }
+                >
+                  {check.status === "MISMATCH" ? (
+                    <X size={17} />
+                  ) : check.status === "MATCH" ? (
+                    <Check size={17} />
+                  ) : (
+                    <span className="pending-dot" />
+                  )}
+                  <span>{check.label}</span>
+                  <strong>{check.status ?? "Waiting"}</strong>
+                </p>
+              ))}
+            </div>
+          </article>
+        ))}
       </div>
-      <div className="proof-reveal" aria-live="polite">
+      <div className="proof-conclusion" aria-live="polite">
         {after ? (
           <>
-            <span className="pill red">THE MISSING RECORD WAS DETECTED</span>
-            <h2>
-              A fresh hash passed.
-              <br />
-              The incomplete evidence didn’t.
-            </h2>
+            <Check size={21} />
             <p>
-              The verifier checked every matching record in the original
-              hash-pinned ZIP. File integrity and evidence completeness answer
-              different questions.
+              <strong>The hash passed. The missing evidence didn’t.</strong>
+              <span>
+                Compared with every matching record in the pinned source
+                archive.
+              </span>
             </p>
           </>
         ) : (
-          <>
-            <h2>
-              {running ? steps[Math.max(stage, 0)] : "Run the proof yourself."}
-            </h2>
-            <p>
-              {running
-                ? "Real checks are running in your browser. The first replay downloads the 10.8 MB archive."
-                : "Replay the example, inspect the outputs and download both packets."}
-            </p>
-          </>
+          <p>Checking the original archive. The first run loads 10.8 MB.</p>
         )}
       </div>
-      <div className="proof-bottom">
+      <div className="proof-next">
         <button className="button primary" onClick={openReview}>
-          Review a statement yourself <ArrowRight size={17} />
+          Review a statement <ArrowRight size={17} />
         </button>
+        <span>Example claim: “no recorded detections” · AZE_S_010</span>
+      </div>
+      <details className="disclosure proof-inspect">
+        <summary>Inspect the files and technical checks</summary>
+        <div className="proof-downloads">
+          {original && (
+            <button
+              className="button secondary"
+              onClick={() => save(original, "afterplume-original.json")}
+            >
+              <Download size={15} />
+              Original packet
+            </button>
+          )}
+          {edited && (
+            <button
+              className="button secondary"
+              onClick={() => save(edited, "afterplume-omitted-rehashed.json")}
+            >
+              <Download size={15} />
+              Edited packet
+            </button>
+          )}
+        </div>
         {original && (
-          <button
-            className="button secondary"
-            onClick={() => save(original, "afterplume-original.json")}
-          >
-            <Download size={16} /> Original packet
-          </button>
+          <p>
+            Original digest <code>{original.digest}</code>
+          </p>
         )}
         {edited && (
-          <button
-            className="button secondary"
-            onClick={() => save(edited, "afterplume-omitted-rehashed.json")}
-          >
-            <Download size={16} /> Edited packet
-          </button>
+          <p>
+            Rebuilt digest <code>{edited.digest}</code>
+          </p>
         )}
-        <button className="text-button" onClick={openLedger}>
-          See registry lifecycle evidence <ArrowRight size={15} />
-        </button>
-      </div>
-      <details className="proof-boundaries">
-        <summary>What the demonstration establishes</summary>
         <p>
-          It catches an omission relative to this exact snapshot. It does not
-          establish physical repair, zero emissions, operator dishonesty or
-          future observations. This example is unpublished: external blockchain
-          commitment is not established. The source archive is hash-pinned by
-          AfterPlume, not digitally signed by UNEP.
+          Removing a record changes the evidence and finding. The edited copy is
+          rehashed, then replayed against the full original ZIP. Integrity
+          checks the file itself; source completeness checks the observations it
+          should include.
+        </p>
+        <button className="text-button" onClick={openLedger}>
+          See registry lifecycle evidence <ArrowRight size={14} />
+        </button>
+      </details>
+      <details className="disclosure proof-boundaries">
+        <summary>Scope of this example</summary>
+        <p>
+          The statement is hypothetical. The checks establish completeness
+          within one pinned snapshot, not physical repair, zero emissions or
+          operator dishonesty. No blockchain commitment is attached to these
+          example packets. The provider has not digitally signed the archive.
         </p>
       </details>
     </section>

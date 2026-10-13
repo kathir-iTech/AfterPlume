@@ -1,14 +1,18 @@
 # Product flow
 
-AfterPlume helps an analyst check a bounded methane statement and preserve a review that another person can replay.
+AfterPlume helps climate journalists check methane statements and preserve a review someone else can replay.
 
 ## Routes
 
-- `/`: world map, full source catalogue, filters and an all-source interval check. The map uses a local Natural Earth outline and actual provider coordinates. Map controls support pan and zoom; the searchable table provides a keyboard-accessible alternative.
+- `/`: a short introduction, one primary proof action and an illustrative case with real observations. The catalogue and batch form are absent from this first view.
+- `/explore`: interactive map, searchable full catalogue and country/sector filters. Batch checks sit inside a labelled disclosure. Six rows are shown per page; the table provides a keyboard alternative to map selection.
 - `/proof`: an automatically running, stoppable proof tour. The original packet is verified, one matching record is removed, the finding and digest are recomputed, then the changed packet is verified. Result labels come from actual checks. Both files are downloadable.
-- `/review`: editable source, claim, interval and human response. The timeline focuses on the interval by default, with date/rate axes, hover/focus details and full-history toggle. Result cards summarize actual packets; they are not verification certificates.
+- `/review`: statement entry, then an evidence finding, then a human response. Editing and results are separate stages. The result shows matching observations; the full source history, reference notes, model diagnostics and additional actions are available on request. Result cards summarize actual packets; they are not verification certificates.
 - `/verify`: import your packet or load a packaged example in one click. Integrity, full-source replay and external commitment remain separate.
 - `/method`: detailed scientific, time, attribution and cryptographic boundaries.
+- `/about`: target user, problem, measured engineering, IEEE ClimateChain event and Climate Data & Environmental Monitoring track.
+
+Home, Explore and Review are the main navigation choices. Proof, file verification, scientific method, About and source code are accessible through the keyboard-operable More menu. The first visit is intentionally brief; scientific qualifications remain beside findings, and extended context stays accessible.
 
 The public deployment shows recorded local-contract lifecycle evidence when ledger publication is opened. It labels the chain local and resettable. A locally configured browser can still perform actual wallet-driven publication. There is no claim of a deployed public testnet contract.
 

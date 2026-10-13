@@ -10,9 +10,7 @@ test("real snapshot → human response → export → independent replay → omi
   await expect(
     page.getByRole("heading", { name: "Detection recorded" }),
   ).toBeVisible();
-  await expect(
-    page.getByText("3 matching records", { exact: true }),
-  ).toBeVisible();
+  await expect(page.locator(".finding-count")).toContainText("3");
   await page.getByText("Correct or narrow", { exact: true }).click();
   await page
     .getByLabel("Your explanation")
@@ -34,11 +32,12 @@ test("real snapshot → human response → export → independent replay → omi
     .click();
   const download = await downloadEvent;
   expect(download.suggestedFilename()).toContain("r1.json");
-  await page.getByRole("button", { name: "Replay this review" }).click();
+  await page.getByRole("button", { name: "Verify this review" }).click();
   await expect(page.locator(".verification-check.match")).toHaveCount(2);
   await expect(page.locator(".verification-check.not_established")).toHaveCount(
     1,
   );
+  await page.getByText("Try removing a record", { exact: true }).click();
   await page.getByRole("button", { name: "Omit a record & rehash" }).click();
   await expect(page.locator(".verification-check.match")).toHaveCount(1);
   await expect(page.locator(".verification-check.mismatch")).toHaveCount(1);
@@ -69,6 +68,7 @@ test("local AI computes query embeddings without a paid API", async ({
   await page
     .getByRole("button", { name: "Suggest a claim type locally" })
     .click();
+  await page.getByText("Local assistance details", { exact: false }).click();
   await expect(
     page.getByText(/384-dimensional embeddings computed locally/),
   ).toBeVisible({ timeout: 200000 });

@@ -1,6 +1,10 @@
 # Architecture
 
-The main entry now opens a world source explorer. Dedicated React views separate the explorer, proof tour, review desk, packet checks, scientific method, timeline, map and recorded ledger evidence. Browser routes are `/`, `/proof`, `/review`, `/verify` and `/method`; explicit Vercel rewrites retain deep links.
+The main entry opens a brief introduction and proof action. Separate, lazily loaded views handle the explorer, proof tour, review desk, scientific method, About and optional ledger tools. Browser routes are `/`, `/explore`, `/proof`, `/review`, `/verify`, `/method` and `/about`; explicit Vercel rewrites retain deep links.
+
+Optional ledger code is dynamically imported when needed. The production entry bundle is approximately 334 kB minified, compared with approximately 706 kB before this pass. This is an artifact-size comparison, not a loading-time benchmark; workers, data, model assets and optional chunks are separate downloads.
+
+Production and the local static preview enforce the same content security policy. Scripts, workers and models are served from this app; WASM compilation and local test-RPC access are explicitly allowed. Inline style attributes support the data charts. Development HMR is not presented as a production security check.
 
 The catalogue is generated from the original hash-checked source CSV. An additional data worker loads and verifies the original ZIP, indexes source-assigned records, returns any selected source's raw records and evaluates all-source intervals. It remains separate from the local embedding worker. UI metadata never substitutes for full packet replay against the trusted archive.
 

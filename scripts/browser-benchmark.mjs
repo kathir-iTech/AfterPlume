@@ -19,7 +19,7 @@ await page
   .click();
 await page
   .getByText(/384-dimensional embeddings computed locally/)
-  .waitFor({ timeout: 200000 });
+  .waitFor({ timeout: 200000, state: "attached" });
 const coldUiMilliseconds = performance.now() - coldStarted;
 const warm = [];
 for (let i = 0; i < 20; i++) {
@@ -34,7 +34,7 @@ for (let i = 0; i < 20; i++) {
     .click();
   await page
     .getByText(/384-dimensional embeddings computed locally/)
-    .waitFor({ timeout: 30000 });
+    .waitFor({ timeout: 30000, state: "attached" });
   const status = await page.locator(".ai-status").textContent();
   warm.push({
     run: i + 1,
