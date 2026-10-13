@@ -48,6 +48,15 @@ import { type Fixture, type Assistance, type LocalAI } from "./ui-data.ts";
 const MethodView = lazy(() => import("./MethodView.tsx"));
 const LedgerEvidence = lazy(() => import("./LedgerEvidence.tsx"));
 import useSnapshot from "./useSnapshot.ts";
+import {
+  WORKSPACE_KEY,
+  DRAFTS_KEY,
+  readBrowserWorkspace,
+  readBrowserDrafts,
+  isDraft,
+  type Workspace,
+} from "./workspace.ts";
+const Reviews = lazy(() => import("./Reviews.tsx"));
 import type { Source, SourceIndex } from "./explorer-types.ts";
 
 const initialClaim: Claim = {
@@ -57,6 +66,17 @@ const initialClaim: Claim = {
   start: "2026-05-01",
   end: "2026-06-02",
   hypothetical: true,
+  reference: "",
+  timeBasis: "provider-calendar-date",
+};
+const blankClaim: Claim = {
+  text: "",
+  sourceId: "",
+  start: "",
+  end: "",
+  kind: "no_detections",
+  hypothetical: false,
+  reference: "",
   timeBasis: "provider-calendar-date",
 };
 const emptyResponse: HumanResponse = {
@@ -78,10 +98,17 @@ function historyPush(path: string) {
 export default function App() {
   const [fixture, setFixture] = useState<Fixture>();
   const [fatal, setFatal] = useState("");
-  const [claim, setClaim] = useState<Claim>(initialClaim);
+  const [restored] = useState(readBrowserWorkspace);
+  const [workspaceReady, setWorkspaceReady] = useState(false);
+  const [storageStatus, setStorageStatus] = useState("Opening workspace…");
+  const [savedDraft, setSavedDraft] = useState<Workspace | undefined>(restored);
+  const [drafts, setDrafts] = useState<Workspace[]>(readBrowserDrafts);
+  const [claim, setClaim] = useState<Claim>(restored?.claim ?? blankClaim);
   const [packet, setPacket] = useState<Packet>();
   const [history, setHistory] = useState<Packet[]>([]);
-  const [response, setResponse] = useState<HumanResponse>(emptyResponse);
+  const [response, setResponse] = useState<HumanResponse>(
+    restored?.response ?? emptyResponse,
+  );
   const [tab, setTab] = useState<View>(() => routeView());
   const [index, setIndex] = useState<SourceIndex>();
   const indexValue = useRef<SourceIndex | undefined>(undefined);
@@ -90,7 +117,9 @@ export default function App() {
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
-  const [assistance, setAssistance] = useState<Assistance>(none);
+  const [assistance, setAssistance] = useState<Assistance>(
+    restored?.assistance ?? none,
+  );
   const [aiStatus, setAiStatus] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiInfo, setAiInfo] = useState<LocalAI>();
@@ -109,6 +138,7 @@ export default function App() {
   const fileRef = useRef<HTMLInputElement>(null);
   const sourceRequest = useRef(0);
   const reviewRequest = useRef(0);
+  const verifyRequest = useRef(0);
   const example = useRef<Fixture | undefined>(undefined);
   const moreMenu = useRef<HTMLDetailsElement>(null);
   function navigate(value: View) {
@@ -147,7 +177,12 @@ export default function App() {
       live = false;
     };
   }, []);
-  async function openSource(source: Source, start?: string, end?: string) {
+  async function openSource(
+    source: Source,
+    start?: string,
+    end?: string,
+    practice = false,
+  ) {
     const request = ++sourceRequest.current;
     setBusy("source");
     setError("");
@@ -179,11 +214,14 @@ export default function App() {
         ],
         records,
       });
+      archiveCurrentDraft();
       changeClaim({
+        ...blankClaim,
         sourceId: source.id,
         start: nextStart,
         end: nextEnd,
-        text: `No methane detections were recorded for source ${source.id} from ${nextStart} included to ${nextEnd} excluded.`,
+        text: practice ? initialClaim.text : "",
+        hypothetical: practice,
         kind: "no_detections",
       });
       navigate("review");
@@ -207,6 +245,11 @@ export default function App() {
         if (live) {
           example.current = d;
           setFixture(d);
+          if (restored)
+            void restoreWorkspace(restored, d).finally(() => {
+              if (live) setWorkspaceReady(true);
+            });
+          else setWorkspaceReady(true);
         }
       })
       .catch((e) => {
@@ -242,6 +285,123 @@ export default function App() {
       }
     }
   }, [history]);
+  useEffect(() => {
+    if (!workspaceReady) return;
+    if (!claim.sourceId && !claim.text) {
+      try {
+        localStorage.removeItem(WORKSPACE_KEY);
+        setSavedDraft(undefined);
+        setStorageStatus("Saved on this device");
+      } catch {
+        setStorageStatus("Storage unavailable · export to keep your work");
+      }
+      return;
+    }
+    const saved: Workspace = {
+      claim,
+      response,
+      assistance,
+      packet: packet ?? null,
+      updated: new Date().toISOString(),
+    };
+    try {
+      localStorage.setItem(WORKSPACE_KEY, JSON.stringify(saved));
+      setSavedDraft(saved);
+      setStorageStatus("Saved on this device");
+    } catch {
+      setStorageStatus("Storage unavailable · export to keep your work");
+    }
+  }, [claim, response, assistance, packet, workspaceReady]);
+  async function restoreWorkspace(saved: Workspace, base = fixture) {
+    const request = ++reviewRequest.current;
+    setBusy("restore");
+    setError("");
+    try {
+      if (!base) return;
+      const id = saved.claim.sourceId;
+      const records = id ? await snapshot.sourceRecords(id) : base.records;
+      if (request !== reviewRequest.current) return;
+      const source = indexValue.current?.sources.find((s) => s.id === id);
+      setFixture({
+        manifest: base.manifest,
+        records,
+        sources: id
+          ? [
+              {
+                source_name: id,
+                country:
+                  source?.country ?? records[0]?.raw.country ?? "Not reported",
+                sector:
+                  source?.sector ?? records[0]?.raw.sector ?? "Not reported",
+                lat: source?.lat ?? "",
+                lon: source?.lon ?? "",
+              },
+            ]
+          : base.sources,
+      });
+      setClaim(saved.claim);
+      setResponse(saved.response);
+      setAssistance(saved.assistance);
+      setPacket(undefined);
+      if (saved.packet) {
+        const checked = await verifyPacket(saved.packet, await getZip());
+        if (request !== reviewRequest.current) return;
+        if (
+          checked.integrity.status !== "MATCH" ||
+          checked.snapshot.status !== "MATCH"
+        )
+          throw new Error(
+            "Saved evidence could not be verified. Your inputs are restored; run a fresh check.",
+          );
+        if (
+          JSON.stringify(saved.packet.payload.claim) !==
+          JSON.stringify(saved.claim)
+        )
+          throw new Error("Saved inputs changed. Run a fresh evidence check.");
+        setPacket(saved.packet);
+      }
+    } catch (e) {
+      if (request === reviewRequest.current)
+        setError(e instanceof Error ? e.message : "Could not restore review.");
+    } finally {
+      if (request === reviewRequest.current) setBusy("");
+    }
+  }
+  function startNewReview() {
+    archiveCurrentDraft();
+    changeClaim(blankClaim);
+    navigate("explore");
+  }
+  function loadExample() {
+    archiveCurrentDraft();
+    changeClaim(initialClaim);
+    if (example.current) setFixture(example.current);
+    navigate("review");
+  }
+  function archiveCurrentDraft() {
+    if (
+      !savedDraft ||
+      !isDraft(savedDraft) ||
+      (!savedDraft.claim.text && !savedDraft.claim.sourceId)
+    )
+      return;
+    const next = [
+      ...drafts.filter(
+        (d) =>
+          d.claim.sourceId !== savedDraft.claim.sourceId ||
+          d.claim.text !== savedDraft.claim.text,
+      ),
+      savedDraft,
+    ].slice(-20);
+    try {
+      localStorage.setItem(DRAFTS_KEY, JSON.stringify(next));
+      setDrafts(next);
+    } catch {
+      setNotice(
+        "This device could not save another draft. Export your evidence to keep a backup.",
+      );
+    }
+  }
   async function getZip() {
     if (!zip.current) {
       zip.current = await fetchKnownSnapshot();
@@ -250,7 +410,9 @@ export default function App() {
   }
   function changeClaim(part: Partial<Claim>) {
     reviewRequest.current++;
-    setBusy((current) => (current === "review" ? "" : current));
+    setBusy((current) =>
+      ["review", "restore", "decision"].includes(current) ? "" : current,
+    );
     queryId.current++;
     setAiBusy(false);
     setClaim((c) => ({ ...c, ...part }));
@@ -267,6 +429,17 @@ export default function App() {
     setError("");
     setBusy("review");
     try {
+      if (
+        !claim.text.trim() ||
+        !claim.sourceId ||
+        !claim.start ||
+        !claim.end ||
+        claim.start >= claim.end
+      ) {
+        throw new Error(
+          "Enter a statement, source and valid dates before checking the evidence.",
+        );
+      }
       let records = fixture.records;
       let knownSource = fixture.sources.some(
         (s) => s.source_name === claim.sourceId,
@@ -423,6 +596,7 @@ export default function App() {
       setError("Enter the narrower or corrected statement.");
       return;
     }
+    const request = ++reviewRequest.current;
     const payload = { ...packet.payload, response };
     const completed = {
       ...packet,
@@ -430,7 +604,19 @@ export default function App() {
       digest: await digestPayload(payload),
       receipt: null,
     };
+    if (request !== reviewRequest.current) return;
     setPacket(completed);
+    const remainingDrafts = drafts.filter(
+      (d) =>
+        d.claim.sourceId !== completed.payload.claim.sourceId ||
+        d.claim.text !== completed.payload.claim.text,
+    );
+    try {
+      localStorage.setItem(DRAFTS_KEY, JSON.stringify(remainingDrafts));
+      setDrafts(remainingDrafts);
+    } catch {
+      /* Current review remains available for export. */
+    }
     setHistory((h) => [
       ...h.filter(
         (p) =>
@@ -439,12 +625,16 @@ export default function App() {
       ),
       completed,
     ]);
-    setNotice("Review saved.");
+    setNotice(
+      "Review completed and saved on this device. Export a file to share it.",
+    );
   }
   async function verify(text = verifyInput) {
+    const request = ++verifyRequest.current;
     setBusy("verify");
     setError("");
     setReport(undefined);
+    setVerifyPacketValue(undefined);
     try {
       const p = parsePacket(text);
       setVerifyPacketValue(p);
@@ -467,11 +657,12 @@ export default function App() {
         );
         result.anchor = await verifyAnchor(p, ledger.rpcUrl);
       }
-      setReport(result);
+      if (request === verifyRequest.current) setReport(result);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Invalid packet.");
+      if (request === verifyRequest.current)
+        setError(e instanceof Error ? e.message : "Invalid packet.");
     } finally {
-      setBusy("");
+      if (request === verifyRequest.current) setBusy("");
     }
   }
   async function attack() {
@@ -608,6 +799,7 @@ export default function App() {
               ["home", "Home"],
               ["explore", "Explore"],
               ["review", "Review desk"],
+              ["reviews", "Your reviews"],
             ] as const
           ).map(([value, label]) => (
             <button
@@ -691,6 +883,13 @@ export default function App() {
               index={index}
               records={example.current?.records ?? []}
               watchProof={() => navigate("proof")}
+              startReview={() => navigate("explore")}
+              resumeReview={savedDraft ? () => navigate("review") : undefined}
+              resumeLabel={
+                savedDraft?.packet && !isDraft(savedDraft)
+                  ? "Open your saved review"
+                  : "Continue your review"
+              }
             />
           )}
           {tab === "about" && <About />}
@@ -709,11 +908,7 @@ export default function App() {
             <ProofTour
               getZip={getZip}
               openReview={() => {
-                const source = index?.sources.find(
-                  (s) => s.id === initialClaim.sourceId,
-                );
-                if (source) void openSource(source);
-                else navigate("review");
+                loadExample();
               }}
               openLedger={() => {
                 setShowLedgerEvidence(true);
@@ -727,8 +922,35 @@ export default function App() {
               }}
             />
           )}
+          {tab === "reviews" && (
+            <Reviews
+              history={history}
+              draft={savedDraft}
+              drafts={drafts}
+              busy={!!busy}
+              resume={(d) => {
+                archiveCurrentDraft();
+                navigate("review");
+                void restoreWorkspace(d);
+              }}
+              start={startNewReview}
+              open={(p) => {
+                archiveCurrentDraft();
+                navigate("review");
+                void restoreWorkspace({
+                  claim: p.payload.claim,
+                  response: p.payload.response,
+                  assistance: p.payload.assistance,
+                  packet: p,
+                  updated: p.payload.created,
+                });
+              }}
+            />
+          )}
           {tab === "review" && (
             <ReviewDesk
+              storageStatus={storageStatus}
+              loadExample={loadExample}
               setVerifyInput={setVerifyInput}
               claim={claim}
               packet={packet}
@@ -779,29 +1001,54 @@ export default function App() {
                   <Upload size={16} /> Import review packet
                 </button>
               </section>
-              <div className="packaged-example">
-                <div>
-                  <h2>Start with a working example.</h2>
-                  <p>Try the original review without importing a file.</p>
+              {!verifyInput && (
+                <details className="disclosure verify-example">
+                  <summary>Try an example review</summary>
+                  <div className="packaged-example">
+                    <div>
+                      <h2>Start with a working example.</h2>
+                      <p>Try the original review without importing a file.</p>
+                    </div>
+                    <button
+                      className="button secondary"
+                      disabled={!!busy}
+                      onClick={async () => {
+                        try {
+                          const r = await fetch("/data/example-review.json");
+                          if (!r.ok) throw new Error("Example unavailable.");
+                          await verify(await r.text());
+                        } catch (e) {
+                          setError(
+                            e instanceof Error
+                              ? e.message
+                              : "Example unavailable.",
+                          );
+                        }
+                      }}
+                    >
+                      Load example & verify
+                    </button>
+                  </div>
+                </details>
+              )}
+              {verifyPacketValue && (
+                <div className="verified-context panel">
+                  <strong>
+                    {verifyPacketValue.payload.claim.sourceId} · Revision{" "}
+                    {verifyPacketValue.payload.revision}
+                  </strong>
+                  <p>{verifyPacketValue.payload.claim.text}</p>
+                  <small>
+                    {verifyPacketValue.payload.claim.hypothetical
+                      ? "Practice statement"
+                      : "User-entered statement"}{" "}
+                    ·{" "}
+                    {verifyPacketValue.payload.response.action === "pending"
+                      ? "Evidence draft · decision not recorded"
+                      : "Decision recorded"}
+                  </small>
                 </div>
-                <button
-                  className="button secondary"
-                  disabled={!!busy}
-                  onClick={async () => {
-                    try {
-                      const r = await fetch("/data/example-review.json");
-                      if (!r.ok) throw new Error("Example unavailable.");
-                      await verify(await r.text());
-                    } catch (e) {
-                      setError(
-                        e instanceof Error ? e.message : "Example unavailable.",
-                      );
-                    }
-                  }}
-                >
-                  Load example & verify
-                </button>
-              </div>
+              )}
               <div className="verify-grid">
                 <section className="panel">
                   <div className="panel-heading">
@@ -833,8 +1080,13 @@ export default function App() {
                       id="packet-json"
                       value={verifyInput}
                       onChange={(e) => {
+                        verifyRequest.current++;
+                        setBusy((current) =>
+                          current === "verify" ? "" : current,
+                        );
                         setVerifyInput(e.target.value);
                         setReport(undefined);
+                        setVerifyPacketValue(undefined);
                       }}
                       placeholder={
                         '{\n  "payload": { ... },\n  "digest": "..."\n}'
@@ -853,35 +1105,38 @@ export default function App() {
                     )}{" "}
                     Verify against full snapshot
                   </button>
-                  <p className="field-help">
-                    The first check loads a 2.8 MB transport copy of the
-                    original archive.
-                  </p>
-                  <label className="snapshot-upload">
-                    <Upload size={14} /> Supply the pinned snapshot ZIP
-                    <input
-                      type="file"
-                      accept=".zip"
-                      onChange={async (e) => {
-                        const f = e.target.files?.[0];
-                        if (!f) return;
-                        if (f.size > 20_000_000) {
-                          setError("Snapshot exceeds 20 MB.");
-                          return;
-                        }
-                        zip.current = new Uint8Array(await f.arrayBuffer());
-                        setReport(undefined);
-                        setNotice(
-                          "Snapshot supplied. Its SHA-256 will be checked before any ZIP member is unpacked.",
-                        );
-                      }}
-                    />
-                  </label>
+                  <details className="disclosure">
+                    <summary>Use your own copy of the source archive</summary>
+                    <label className="snapshot-upload">
+                      <Upload size={14} /> Supply the pinned snapshot ZIP
+                      <input
+                        type="file"
+                        accept=".zip"
+                        onChange={async (e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          if (f.size > 20_000_000) {
+                            setError("Snapshot exceeds 20 MB.");
+                            return;
+                          }
+                          zip.current = new Uint8Array(await f.arrayBuffer());
+                          verifyRequest.current++;
+                          setBusy((current) =>
+                            current === "verify" ? "" : current,
+                          );
+                          setReport(undefined);
+                          setNotice(
+                            "Snapshot supplied. Its SHA-256 will be checked before any ZIP member is unpacked.",
+                          );
+                        }}
+                      />
+                    </label>
+                  </details>
                 </section>
                 <section className="panel verification-results">
                   <div className="panel-heading">
                     <ShieldCheck size={18} />
-                    <h2>Three separate checks</h2>
+                    <h2>Verification results</h2>
                   </div>
                   {report ? (
                     <>

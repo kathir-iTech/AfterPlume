@@ -12,7 +12,10 @@ const page = await browser.newPage({
 await page.goto(
   new URL("/review", process.env.BASE_URL ?? "http://127.0.0.1:5173").href,
 );
-await page.getByRole("heading", { name: "Bound the statement" }).waitFor();
+await page
+  .getByRole("button", { name: "Use a practice statement", exact: true })
+  .click();
+await page.getByRole("heading", { name: "Statement and dates" }).waitFor();
 await page.screenshot({
   path: new URL("01-review-desk.png", root).pathname.replace(
     /^\/([A-Za-z]:)/,
@@ -80,6 +83,7 @@ await page.screenshot({
   fullPage: true,
 });
 await page.setViewportSize({ width: 1440, height: 1000 });
+await page.evaluate(() => localStorage.clear());
 await page.goto(process.env.BASE_URL ?? "http://127.0.0.1:5173");
 await page.locator('canvas[data-outline-ready="true"]').waitFor();
 await page.locator(".home-visual").waitFor();

@@ -4,15 +4,18 @@ AfterPlume helps climate journalists check methane statements and preserve a rev
 
 ## Routes
 
-- `/`: a short introduction, one primary proof action and an illustrative case with real observations. The catalogue and batch form are absent from this first view.
+- `/`: a short introduction with **Find a source** as the primary action. The proof example is secondary. An active workspace can be resumed from here. The catalogue and batch form are absent from this first view.
 - `/explore`: interactive map, searchable full catalogue and country/sector filters. Batch checks sit inside a labelled disclosure. Six rows are shown per page; the table provides a keyboard alternative to map selection.
 - `/proof`: an automatically running, stoppable proof tour. The original packet is verified, one matching record is removed, the finding and digest are recomputed, then the changed packet is verified. Result labels come from actual checks. Both files are downloadable.
-- `/review`: statement entry, then an evidence finding, then a human response. Editing and results are separate stages. The result shows matching observations; the full source history, reference notes, model diagnostics and additional actions are available on request. Result cards summarize actual packets; they are not verification certificates.
-- `/verify`: import your packet or load a packaged example in one click. Integrity, full-source replay and external commitment remain separate.
+- `/review`: choose source → add your own statement and optional document reference → inspect evidence → record decision → saved review. Opening a source does not invent a statement. Practice statements are explicit, optional and labelled in exports. Draft inputs and decisions survive reload. Validation appears beside the relevant field. The normal export and verification actions follow a completed decision; an explicitly labelled evidence-draft export remains under More actions. Full source history and guidance stay in disclosures.
+- `/reviews`: reopen saved completed reviews or resume drafts. Changing cases preserves unfinished work. The device retains up to 20 completed revisions, 20 archived drafts and the active workspace; exporting JSON preserves work outside browser storage.
+- `/verify`: import your packet for automatic checks. The practice example is folded away and disappears when a file is loaded. Integrity, full-source replay and external commitment remain separate. Review identity, statement and completion status stay visible beside results.
 - `/method`: detailed scientific, time, attribution and cryptographic boundaries.
 - `/about`: target user, problem, measured engineering, IEEE ClimateChain event and Climate Data & Environmental Monitoring track.
 
-Home, Explore and Review are the main navigation choices. Proof, file verification, scientific method, About and source code are accessible through the keyboard-operable More menu. The first visit is intentionally brief; scientific qualifications remain beside findings, and extended context stays accessible.
+Home, Explore, Review desk and Your reviews are the main navigation choices. Proof, file verification, scientific method, About and source code are accessible through the keyboard-operable More menu. The first visit is intentionally brief; scientific qualifications remain beside findings, and extended context stays accessible.
+
+The working prototype is a local-first review tool. It requires no account or paid API. Browser storage is not cloud backup or collaboration. Stored evidence is checked for digest integrity and replayed against the pinned full archive before a restored finding is displayed. Original satellite observations are real; user-entered statements and document references are not independently authenticated. A saved decision belongs to the person reviewing the statement and does not pretend that they speak for its original author.
 
 The public deployment shows recorded local-contract lifecycle evidence when ledger publication is opened. It labels the chain local and resettable. A locally configured browser can still perform actual wallet-driven publication. There is no claim of a deployed public testnet contract.
 

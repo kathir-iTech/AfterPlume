@@ -6,6 +6,9 @@ test("failed model downloads preserve accepted keyword provenance", async ({
   await context.route("**/models/**", (route) => route.abort());
   await page.goto("/review");
   await page
+    .getByRole("button", { name: "Use a practice statement", exact: true })
+    .click();
+  await page
     .getByLabel("Statement to review")
     .fill(
       "Methane emissions reduced by 45% compared with a measured baseline.",
@@ -24,8 +27,9 @@ test("failed model downloads preserve accepted keyword provenance", async ({
     page.getByRole("heading", { name: "More evidence needed", exact: true }),
   ).toBeVisible();
   const event = page.waitForEvent("download");
+  await page.getByText("More actions", { exact: true }).click();
   await page
-    .getByRole("button", { name: "Export review", exact: true })
+    .getByRole("button", { name: "Export evidence draft", exact: true })
     .click();
   const download = await event;
   const stream = await download.createReadStream();
@@ -43,6 +47,9 @@ test("result card exports a real PNG summary of the current review", async ({
   page,
 }) => {
   await page.goto("/review");
+  await page
+    .getByRole("button", { name: "Use a practice statement", exact: true })
+    .click();
   await page.getByRole("button", { name: "Run evidence check" }).click();
   const event = page.waitForEvent("download");
   await page.getByText("More actions", { exact: true }).click();
@@ -65,6 +72,9 @@ test("explorer opens a different real source and keeps its review revision separ
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/review");
+  await page
+    .getByRole("button", { name: "Use a practice statement", exact: true })
+    .click();
   await page.getByRole("button", { name: "Run evidence check" }).click();
   await page.getByText("Correct or narrow", { exact: true }).click();
   await page
@@ -84,6 +94,9 @@ test("explorer opens a different real source and keeps its review revision separ
     .click();
   await expect(page.locator(".source-summary")).toContainText("AUS_S_010");
   await expect(page.locator(".source-summary")).toContainText("Australia");
+  await page
+    .getByLabel("Statement to review")
+    .fill("No detections were recorded during the selected interval.");
   await page.getByRole("button", { name: "Run evidence check" }).click();
   await expect(
     page.getByRole("heading", { name: "Detection recorded", exact: true }),
@@ -169,6 +182,9 @@ test("cold assistance provides an immediate human-confirmable suggestion", async
   page,
 }) => {
   await page.goto("/review");
+  await page
+    .getByRole("button", { name: "Use a practice statement", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Suggest a claim type locally" })
     .click();

@@ -684,8 +684,12 @@ label {
   margin-top: 4px;
 }
 .source-table-wrap {
+  position: relative;
   overflow: auto;
   border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.selected-source + .source-table-wrap {
   border-top: 0;
   border-radius: 0 0 9px 9px;
 }
@@ -725,10 +729,13 @@ label {
   white-space: nowrap;
 }
 .table-open {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  min-height: 36px;
+  font-size: 12px;
   border: 1px solid var(--line);
   border-radius: 5px;
   background: var(--surface);
@@ -1912,8 +1919,8 @@ footer a {
     gap: 3px;
   }
   .nav {
-    font-size: 12px;
-    padding: 8px 11px;
+    font-size: 11px;
+    padding: 8px 6px;
   }
   .more-menu > summary {
     font-size: 12px;

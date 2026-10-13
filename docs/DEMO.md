@@ -1,8 +1,10 @@
 # Working walkthrough
 
-Start as a climate journalist checking a methane report. Open the home page and choose **Watch the proof**. Its side-by-side comparison runs real verification without requiring a file import. Technical files and scientific scope are available below the comparison.
+Start as a climate journalist checking a methane report. Choose **Find a source** to begin work with your own statement. Search or click a source, enter the statement and its document reference, then inspect evidence and record a review decision. Drafts and completed reviews can be reopened from **Your reviews**.
 
-1. **Open the real source.** In Review desk, use AZE_S_010, UNEP IMEO MARS. The statement is labelled hypothetical. Other sources are available from Explore.
+For a clearly labelled practice walkthrough, choose **Watch the proof**. Its side-by-side comparison runs real verification without requiring a file import. Technical files and scientific scope are available below the comparison.
+
+1. **Open the real source.** In Review desk, explicitly choose **Use a practice statement** for AZE_S_010, UNEP IMEO MARS. The statement is labelled practice/hypothetical. Other sources are available from Explore.
 2. **Use local assistance.** The model suggests the bounded claim type and retrieves cited reference notes. Confirm the type as a human. First use loads model/runtime assets; a cached demo must not be described as cold performance.
 3. **Run the evidence check.** Three records fall within the interval, including the 1 June 2026 EMIT record, 601 kg/h with reported standard deviation 155 kg/h. This conflicts with “no recorded detections.” It does not establish whether a repair occurred or whether emissions subsequently stopped.
 4. **Respond.** Correct or narrow the statement. The original claim remains visible. Review status becomes completed while mitigation stays unassessed.

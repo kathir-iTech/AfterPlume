@@ -3,8 +3,11 @@ test("real snapshot → human response → export → independent replay → omi
   page,
 }) => {
   await page.goto("/review");
+  await page
+    .getByRole("button", { name: "Use a practice statement", exact: true })
+    .click();
   await expect(
-    page.getByRole("heading", { name: "Bound the statement" }),
+    page.getByRole("heading", { name: "Statement and dates" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Run evidence check" }).click();
   await expect(
@@ -47,6 +50,9 @@ test("no detections is bounded and mobile layout stays usable", async ({
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/review");
+  await page
+    .getByRole("button", { name: "Use a practice statement", exact: true })
+    .click();
   await page.getByLabel("Start · included").fill("2026-07-01");
   await page.getByLabel("End · excluded").fill("2026-08-01");
   await page.getByRole("button", { name: "Run evidence check" }).click();
@@ -65,6 +71,9 @@ test("local AI computes query embeddings without a paid API", async ({
 }) => {
   test.setTimeout(240000);
   await page.goto("/review");
+  await page
+    .getByRole("button", { name: "Use a practice statement", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Suggest a claim type locally" })
     .click();

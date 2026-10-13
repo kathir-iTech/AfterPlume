@@ -43,6 +43,7 @@ export const ClaimSchema = z
     start: date,
     end: date,
     hypothetical: z.boolean(),
+    reference: z.string().max(1500).optional(),
     timeBasis: z.literal("provider-calendar-date"),
   })
   .strict();
@@ -347,7 +348,10 @@ export async function readKnownSnapshot(
   const files = unzipSync(bytes, {
     filter: (f) =>
       f.originalSize < 30_000_000 &&
-      ['unep_methanedata_detected_plumes.csv','unep_methanedata_detected_sources.csv'].includes(f.name.split('/').at(-1)??'') &&
+      [
+        "unep_methanedata_detected_plumes.csv",
+        "unep_methanedata_detected_sources.csv",
+      ].includes(f.name.split("/").at(-1) ?? "") &&
       !f.name.includes("..") &&
       !f.name.startsWith("/"),
   });

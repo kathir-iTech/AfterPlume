@@ -67,9 +67,7 @@ export default function Observatory({
   const active =
     (selected && filtered.some((s) => s.id === selected.id)
       ? selected
-      : undefined) ??
-    filtered.find((s) => s.id === "AZE_S_010") ??
-    filtered[0];
+      : undefined) ?? (filtered.length === 1 ? filtered[0] : undefined);
   function exportBatch() {
     if (!batch || !evaluatedInterval) return;
     const text = [
@@ -92,7 +90,9 @@ export default function Observatory({
         <div className="section-heading">
           <div>
             <h1>Explore methane sources.</h1>
-            <p>Find a source. Open its observations.</p>
+            <p>
+              Step 1 · Find a source, then add the statement you want to review.
+            </p>
           </div>
           <span className="pill teal">
             <Globe2 size={13} /> {filtered.length.toLocaleString()} sources
@@ -146,7 +146,7 @@ export default function Observatory({
         {active && (
           <div className="selected-source">
             <div>
-              <span className="eyebrow">SELECTED ON MAP</span>
+              <span className="eyebrow">SELECTED SOURCE</span>
               <h3>
                 {active.id} <span>{active.country}</span>
               </h3>
@@ -202,7 +202,12 @@ export default function Observatory({
               </thead>
               <tbody>
                 {filtered.slice(page * 6, (page + 1) * 6).map((s) => (
-                  <tr key={s.id} onMouseEnter={() => setSelected(s)}>
+                  <tr
+                    key={s.id}
+                    className={
+                      selected?.id === s.id ? "selected-row" : undefined
+                    }
+                  >
                     <td>
                       <button
                         className="source-id-button"
@@ -239,7 +244,8 @@ export default function Observatory({
                           )
                         }
                       >
-                        <ArrowUpRight size={19} />
+                        <span>Review</span>
+                        <ArrowRight size={16} />
                       </button>
                     </td>
                   </tr>

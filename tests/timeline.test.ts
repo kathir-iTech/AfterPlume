@@ -38,4 +38,20 @@ describe("detection timeline scientific meaning", () => {
     expect(html).not.toContain("unquantified-rail");
     expect(html).toContain("View 2026-05-20 test sensor record");
   });
+  it("a one-day interval does not repeat fractional-day tick labels", () => {
+    const html = renderToStaticMarkup(
+      createElement(Timeline, {
+        records: [record("8597")],
+        start: "2026-05-20",
+        end: "2026-05-21",
+        onSelect: () => {},
+      }),
+    );
+    const labels = [...html.matchAll(/text-anchor="middle">([^<]+)/g)].map(
+      (m) => m[1],
+    );
+    expect(labels.length).toBeGreaterThan(0);
+    expect(new Set(labels).size).toBe(labels.length);
+    expect(html).not.toContain("2026–2026");
+  });
 });

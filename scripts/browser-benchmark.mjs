@@ -12,7 +12,10 @@ page.on("pageerror", (e) => errors.push(e.message));
 await page.goto(
   new URL("/review", process.env.BASE_URL ?? "http://127.0.0.1:5173").href,
 );
-await page.getByRole("heading", { name: "Bound the statement" }).waitFor();
+await page
+  .getByRole("button", { name: "Use a practice statement", exact: true })
+  .click();
+await page.getByRole("heading", { name: "Statement and dates" }).waitFor();
 const coldStarted = performance.now();
 await page
   .getByRole("button", { name: "Suggest a claim type locally" })

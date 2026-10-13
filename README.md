@@ -4,15 +4,19 @@
 
 [Open the app](https://afterplume.vercel.app) · [Watch the proof](https://afterplume.vercel.app/proof) · [Measured validation](docs/VALIDATION.md)
 
-A report says “no detections.” Three satellite observations need checking. AfterPlume reviews the statement against public evidence and preserves a file someone else can replay.
+Choose a methane source, paste the statement you’re checking, and record a decision against public satellite observations. AfterPlume saves your work on your device and exports a file another reader can replay.
 
 The interactive example removes one observation and rebuilds the file's hash. The hash passes; the source-completeness check catches the missing record. The statement is hypothetical, and the satellite records are real UNEP MARS observations.
 
 ## Try it
 
-1. **Watch the proof:** a compact comparison runs actual checks and offers both files for inspection.
-2. **Review a statement:** choose a source and interval, check the observations, then record your response.
-3. **Verify the review:** import an exported file or use the example. Detailed checks are available on request.
+1. **Find a source:** search or select a location in Explore, then choose Review.
+2. **Add your statement:** paste its exact wording, optionally note the document or URL, and confirm the claim type and dates. No statement is generated on your behalf.
+3. **Inspect the evidence:** review every matching observation and the bounded finding.
+4. **Record your decision:** correct or narrow, retain with explanation, or withdraw the statement from your review. Complete the review before exporting and verifying it.
+5. **Return to your work:** Your reviews contains saved decisions and unfinished drafts. Inputs survive reload; saved evidence is verified against the full snapshot before being displayed again.
+
+The [proof example](https://afterplume.vercel.app/proof) and an explicit practice statement remain available for learning. Practice statements are labelled in their exported files. Browser storage is local to this device; export JSON to share or back up a completed review.
 
 The [source explorer](https://afterplume.vercel.app/explore) includes all 4,211 provider sources. Batch tools, raw records and scientific context remain available behind labelled disclosures. Core review requires no account or paid API.
 
@@ -66,7 +70,7 @@ npm run chain:deploy
 
 The deployment writes a local configuration into `apps/web/public/ledger/local.json`. In a browser EVM wallet, connect to chain ID `31337`, RPC `http://127.0.0.1:8545` and use only the disposable local test accounts printed by Hardhat. Never send real funds to these accounts or use their publicly known keys on any funded network.
 
-Complete a review, open optional blockchain publication and publish it. The owner can authorize a distinct reviewer address; switching to that reviewer allows an acknowledgement of the current exact revision. Publishing a later revision preserves the old acknowledgement as history. Owner withdrawal is terminal.
+Complete a review, open Blockchain test workspace and publish it. The owner can authorize a distinct reviewer address; switching to that reviewer allows an acknowledgement of the current exact revision. Publishing a later revision preserves the old acknowledgement as history. Owner withdrawal is terminal.
 
 Local chain records are resettable and are labelled accordingly. A public testnet deployment is a separate configuration and is not implied by a passing contract test. No purchased ETH or paid RPC is required or assumed.
 
@@ -102,7 +106,7 @@ Three layers: static evidence desk; shared deterministic policy and independent 
 
 See [architecture](docs/ARCHITECTURE.md), [packet protocol](docs/PROTOCOL.md), [authored evaluation queries](evaluation/queries.json) and generated reports in `evaluation/results/`. Retrieval measurements compare BM25, semantic and hybrid ranking on scenario-separated development and holdout queries. They do not measure methane detection or fraud accuracy.
 
-Actual checks: **53 evidence/packet tests and 19 EVM contract tests passed**. The authored holdout retrieval test ranked the expected guidance note first for **16/18 hybrid queries**, compared with **14/18 BM25 queries**. See [validation and limitations](docs/VALIDATION.md) for commands, device details, all engines and cold/warm measurements.
+Actual checks: **62 unit tests and 19 EVM contract tests passed**. The authored holdout retrieval test ranked the expected guidance note first for **16/18 hybrid queries**, compared with **14/18 BM25 queries**. See [validation and limitations](docs/VALIDATION.md) for commands, device details, all engines and cold/warm measurements.
 
 ![Global source explorer using the full pinned source catalogue](docs/screenshots/07-observatory.png)
 

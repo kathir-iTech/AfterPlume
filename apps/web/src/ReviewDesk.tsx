@@ -34,6 +34,8 @@ import { downloadResultCard } from "./result-card.ts";
 type Setter<T> = Dispatch<SetStateAction<T>>;
 type Props = {
   fixture: Fixture;
+  storageStatus: string;
+  loadExample: () => void;
   claim: Claim;
   packet?: Packet;
   history: Packet[];
@@ -69,6 +71,8 @@ type Props = {
 export default function ReviewDesk(props: Props) {
   const {
     claim,
+    storageStatus,
+    loadExample,
     packet,
     history,
     response,
@@ -106,7 +110,32 @@ export default function ReviewDesk(props: Props) {
     if (packet) setEditing(false);
   }, [packet?.payload.created]);
   const showingResult = !!packet && !editing;
-  const source = fixture.sources[0];
+  const source = fixture.sources.find((s) => s.source_name === claim.sourceId);
+  const [attempted, setAttempted] = useState(false);
+  const explanationError = attempted && response.explanation.trim().length < 10;
+  const correctionError =
+    attempted && response.action === "correct" && !response.revisedText.trim();
+  const stage = complete
+    ? 4
+    : showingResult
+      ? response.action === "pending"
+        ? 2
+        : 3
+      : claim.sourceId
+        ? 1
+        : 0;
+  function completeReview() {
+    setAttempted(true);
+    if (response.explanation.trim().length < 10) {
+      document.getElementById("response")?.focus();
+      return;
+    }
+    if (response.action === "correct" && !response.revisedText.trim()) {
+      document.getElementById("corrected")?.focus();
+      return;
+    }
+    void finishResponse();
+  }
   function replay() {
     if (packet) {
       const text = JSON.stringify(packet, null, 2);
@@ -188,8 +217,10 @@ export default function ReviewDesk(props: Props) {
           </h1>
           <p>
             {showingResult
-              ? "Check the finding, then record your response."
-              : "Choose a source and dates. Check the satellite observations."}
+              ? complete
+                ? "Your decision and its supporting evidence are saved together."
+                : "Inspect the records, then record your review decision."
+              : "Add the statement you want to check and confirm its dates."}
           </p>
         </div>
         <div className="review-actions">
@@ -202,7 +233,7 @@ export default function ReviewDesk(props: Props) {
               Review history <span className="count">{history.length}</span>
             </button>
           )}
-          {packet && (
+          {packet && complete && (
             <button className="button primary" onClick={() => download(packet)}>
               <ArrowDownToLine size={16} />
               Export review
@@ -212,49 +243,102 @@ export default function ReviewDesk(props: Props) {
             <details className="action-menu">
               <summary>More actions</summary>
               <div>
+                {!complete && (
+                  <button onClick={() => download(packet)}>
+                    Export evidence draft
+                  </button>
+                )}
                 <button onClick={() => downloadResultCard(packet)}>
                   Download result card
                 </button>
-                <button onClick={loadLedger}>
-                  Optional blockchain publication
-                </button>
+                <button onClick={loadLedger}>Blockchain test workspace</button>
               </div>
             </details>
           )}
         </div>
       </section>
+      <ol className="workflow-steps" aria-label="Review progress">
+        {[
+          "Choose source",
+          "Add statement",
+          "Inspect evidence",
+          "Record decision",
+          "Saved review",
+        ].map((label, i) => (
+          <li
+            key={label}
+            className={i === stage ? "current" : i < stage ? "done" : ""}
+            aria-current={i === stage ? "step" : undefined}
+          >
+            <span>{i < stage ? <Check size={13} /> : i + 1}</span>
+            {label}
+          </li>
+        ))}
+      </ol>
+      <p className="workspace-status" role="status">
+        {storageStatus}
+      </p>
+      {busy === "restore" && (
+        <p className="notice" role="status">
+          Restoring your review and checking its saved evidence…
+        </p>
+      )}
       <div className="source-summary review-source">
-        <strong>{source?.source_name}</strong>
+        <strong>{claim.sourceId || "No source selected"}</strong>
         <span>{source?.country}</span>
         <button className="text-button" onClick={() => navigate("explore")}>
-          Change source <ArrowRight size={14} />
+          {claim.sourceId ? "Change source" : "Choose a source"}{" "}
+          <ArrowRight size={14} />
         </button>
-        <details>
-          <summary>Source details</summary>
-          <p>
-            {fixture.records.length} observations · {source?.sector} · Latest{" "}
-            {latest?.acquired.slice(0, 10) || "not reported"}
-          </p>
-          <p>
-            {source?.lat}, {source?.lon} · UNEP MARS · Pinned 12 Oct 2026
-          </p>
-        </details>
+        {source && (
+          <details>
+            <summary>Source details</summary>
+            <p>
+              {fixture.records.length} observations · {source?.sector} · Latest{" "}
+              {latest?.acquired.slice(0, 10) || "not reported"}
+            </p>
+            <p>
+              {source?.lat}, {source?.lon} · UNEP MARS · Pinned 12 Oct 2026
+            </p>
+          </details>
+        )}
       </div>
       {(!packet || editing) && (
         <section className="panel claim-panel focused-claim">
           <div className="panel-heading">
-            <h2>Bound the statement</h2>
-            <span className="example-tag">Hypothetical example</span>
+            <h2>Statement and dates</h2>
+            <span className="example-tag">
+              {claim.hypothetical ? "Practice statement" : "Your statement"}
+            </span>
           </div>
           <label className="field-label" htmlFor="claim-text">
             Statement to review
           </label>
           <textarea
             id="claim-text"
+            placeholder="Paste the exact statement you want to review."
             maxLength={3000}
             value={claim.text}
             onChange={(e) => changeClaim({ text: e.target.value })}
           />
+          <label className="field-label" htmlFor="statement-reference">
+            Statement reference <small>(optional)</small>
+          </label>
+          <input
+            id="statement-reference"
+            value={claim.reference ?? ""}
+            maxLength={1500}
+            placeholder="Report title, page number or public URL"
+            onChange={(e) => changeClaim({ reference: e.target.value })}
+          />
+          <label className="practice-toggle">
+            <input
+              type="checkbox"
+              checked={claim.hypothetical}
+              onChange={(e) => changeClaim({ hypothetical: e.target.checked })}
+            />
+            This is a practice statement
+          </label>
           <div className="claim-options">
             <div>
               <label className="field-label" htmlFor="source-id">
@@ -313,7 +397,7 @@ export default function ReviewDesk(props: Props) {
             <button
               className="assist-button"
               onClick={requestAI}
-              disabled={aiBusy}
+              disabled={aiBusy || !claim.text.trim()}
             >
               <Sparkles size={15} />
               {aiBusy ? "Suggestions loading…" : "Suggest a claim type locally"}
@@ -357,10 +441,22 @@ export default function ReviewDesk(props: Props) {
             )}
           </div>
           <div className="claim-submit">
-            <span>Dates use the provider’s calendar.</span>
+            <span>
+              {claim.start && claim.end
+                ? `${claim.start} is included; ${claim.end} is not. Dates use the provider’s calendar.`
+                : "Choose the start date and the first date not included."}
+            </span>
             <button
               className="button primary"
-              disabled={!!busy || !assistance.confirmedByHuman}
+              disabled={
+                !!busy ||
+                !assistance.confirmedByHuman ||
+                !claim.text.trim() ||
+                !claim.sourceId ||
+                !claim.start ||
+                !claim.end ||
+                claim.start >= claim.end
+              }
               onClick={runReview}
             >
               {busy === "review" ? (
@@ -371,10 +467,33 @@ export default function ReviewDesk(props: Props) {
               Run evidence check <ArrowRight size={16} />
             </button>
           </div>
+          <div className="practice-link">
+            <button
+              className="text-button"
+              disabled={!!busy}
+              onClick={loadExample}
+            >
+              Use a practice statement <ArrowRight size={14} />
+            </button>
+            <span>Real observations. Hypothetical claim.</span>
+          </div>
         </section>
       )}
       {showingResult && packet && (
         <>
+          <details className="disclosure statement-context">
+            <summary>Statement being reviewed</summary>
+            <blockquote>{packet.payload.claim.text}</blockquote>
+            {packet.payload.claim.reference && (
+              <p>Reference: {packet.payload.claim.reference}</p>
+            )}
+            <p>
+              {packet.payload.claim.hypothetical
+                ? "Practice statement"
+                : "User-entered statement"}{" "}
+              · {claim.start} included → {claim.end} excluded
+            </p>
+          </details>
           <div className="review-result-grid">
             <section
               className={`panel finding-panel focused-finding ${packet.payload.finding.status === "DETECTION_RECORDED" ? "conflict" : "caution"}`}
@@ -412,6 +531,21 @@ export default function ReviewDesk(props: Props) {
                   Full method <ArrowUpRight size={13} />
                 </button>
               </details>
+              {!complete && (
+                <button
+                  className="button primary decision-next"
+                  onClick={() => {
+                    document
+                      .getElementById("review-decision")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    document
+                      .querySelector<HTMLInputElement>('input[name="response"]')
+                      ?.focus({ preventScroll: true });
+                  }}
+                >
+                  Record your decision <ArrowRight size={14} />
+                </button>
+              )}
               <button className="text-button" onClick={() => setEditing(true)}>
                 Edit statement <ArrowRight size={14} />
               </button>
@@ -435,9 +569,11 @@ export default function ReviewDesk(props: Props) {
               </details>
             </section>
           </div>
-          <section className="panel response-panel">
+          <section className="panel response-panel" id="review-decision">
             <div className="panel-heading">
-              <h2>{complete ? "Your response" : "Respond to the finding"}</h2>
+              <h2>
+                {complete ? "Your decision" : "Record your review decision"}
+              </h2>
             </div>
             {complete ? (
               <div className="completed-response">
@@ -447,7 +583,7 @@ export default function ReviewDesk(props: Props) {
                     {packet.payload.response.action === "correct"
                       ? "Statement corrected or narrowed"
                       : packet.payload.response.action === "withdraw"
-                        ? "Statement withdrawn"
+                        ? "Statement excluded from your report"
                         : "Statement retained with explanation"}
                   </strong>
                   <p>{packet.payload.response.explanation}</p>
@@ -460,12 +596,15 @@ export default function ReviewDesk(props: Props) {
               </div>
             ) : (
               <>
+                <p className="decision-helper">
+                  Record how you’ll use this statement in your report.
+                </p>
                 <div className="response-options">
                   {(
                     [
                       ["correct", "Correct or narrow"],
                       ["retain", "Retain with explanation"],
-                      ["withdraw", "Withdraw the statement"],
+                      ["withdraw", "Exclude from my report"],
                     ] as const
                   ).map(([action, title]) => (
                     <label key={action} className="response-option">
@@ -490,6 +629,10 @@ export default function ReviewDesk(props: Props) {
                           id="response"
                           maxLength={5000}
                           placeholder="Explain what the evidence changes."
+                          aria-invalid={explanationError || undefined}
+                          aria-describedby={
+                            explanationError ? "explanation-error" : undefined
+                          }
                           value={response.explanation}
                           onChange={(e) =>
                             setResponse((r) => ({
@@ -498,6 +641,15 @@ export default function ReviewDesk(props: Props) {
                             }))
                           }
                         />
+                        {explanationError && (
+                          <p
+                            className="field-error"
+                            id="explanation-error"
+                            role="alert"
+                          >
+                            Explain your decision in at least 10 characters.
+                          </p>
+                        )}
                       </div>
                       {response.action === "correct" && (
                         <div>
@@ -508,6 +660,10 @@ export default function ReviewDesk(props: Props) {
                             id="corrected"
                             maxLength={3000}
                             placeholder="Write the statement the evidence supports."
+                            aria-invalid={correctionError || undefined}
+                            aria-describedby={
+                              correctionError ? "correction-error" : undefined
+                            }
                             value={response.revisedText}
                             onChange={(e) =>
                               setResponse((r) => ({
@@ -516,13 +672,24 @@ export default function ReviewDesk(props: Props) {
                               }))
                             }
                           />
+                          {correctionError && (
+                            <p
+                              className="field-error"
+                              id="correction-error"
+                              role="alert"
+                            >
+                              Enter the corrected statement to save this
+                              decision.
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
                     <div className="response-bottom">
                       <button
                         className="button primary"
-                        onClick={finishResponse}
+                        disabled={!!busy}
+                        onClick={completeReview}
                       >
                         <Check size={16} />
                         Complete this review
@@ -534,7 +701,7 @@ export default function ReviewDesk(props: Props) {
             )}
             {complete && (
               <div className="saved-actions">
-                <button className="button primary" onClick={replay}>
+                <button className="button secondary" onClick={replay}>
                   <ShieldCheck size={16} />
                   Verify this review
                 </button>
@@ -545,9 +712,12 @@ export default function ReviewDesk(props: Props) {
               </div>
             )}
           </section>
-          {!complete && (
-            <button className="text-button review-replay" onClick={replay}>
-              Verify this review <ArrowRight size={14} />
+          {complete && (
+            <button
+              className="text-button review-replay"
+              onClick={() => navigate("reviews")}
+            >
+              Back to your reviews <ArrowRight size={14} />
             </button>
           )}
         </>

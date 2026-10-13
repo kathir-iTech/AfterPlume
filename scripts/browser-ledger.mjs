@@ -46,6 +46,9 @@ await page.addInitScript(
 await page.goto(
   new URL("/review", process.env.BASE_URL ?? "http://127.0.0.1:5173").href,
 );
+await page
+  .getByRole("button", { name: "Use a practice statement", exact: true })
+  .click();
 await page.getByRole("button", { name: "Run evidence check" }).click();
 await page.getByText("Correct or narrow", { exact: true }).click();
 await page
@@ -61,9 +64,7 @@ await page
   .getByText("Statement corrected or narrowed", { exact: true })
   .waitFor();
 await page.getByText("More actions", { exact: true }).click();
-await page
-  .getByRole("button", { name: "Optional blockchain publication" })
-  .click();
+await page.getByRole("button", { name: "Blockchain test workspace" }).click();
 await page.getByRole("button", { name: "Publish completed review" }).click();
 await page
   .getByRole("button", { name: "Commitment attached" })

@@ -6,10 +6,16 @@ export default function Home({
   index,
   records,
   watchProof,
+  startReview,
+  resumeReview,
+  resumeLabel = "Continue your review",
 }: {
   index?: SourceIndex;
   records: PlumeRecord[];
   watchProof: () => void;
+  startReview: () => void;
+  resumeReview?: () => void;
+  resumeLabel?: string;
 }) {
   const matches = records.filter(
     (r) =>
@@ -29,16 +35,28 @@ export default function Home({
           <em>Found.</em>
         </h1>
         <p className="home-description">
-          Check a statement against satellite records.
+          Review methane claims with satellite evidence.
           <br />
-          See what a report left out.
+          Keep a traceable record of your decision.
         </p>
-        <button className="button primary home-cta" onClick={watchProof}>
+        <button className="button primary home-cta" onClick={startReview}>
           <ShieldCheck size={18} />
-          Watch the proof
+          Find a source
           <ArrowRight size={18} />
         </button>
-        <p className="home-helper">A working example. No signup.</p>
+        <p className="home-helper">
+          Choose a source → Check a statement → Save a review
+        </p>
+        <div className="home-secondary">
+          {resumeReview && (
+            <button className="text-button" onClick={resumeReview}>
+              {resumeLabel} <ArrowRight size={14} />
+            </button>
+          )}
+          <button className="text-button" onClick={watchProof}>
+            Watch the proof <ArrowRight size={14} />
+          </button>
+        </div>
       </div>
       <div className="home-visual">
         <WorldMap

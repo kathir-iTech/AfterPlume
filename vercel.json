@@ -28,6 +28,10 @@
     {
       "source": "/method",
       "destination": "/index.html"
+    },
+    {
+      "source": "/reviews",
+      "destination": "/index.html"
     }
   ],
   "headers": [

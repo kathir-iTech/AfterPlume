@@ -41,6 +41,14 @@ export default function Timeline({
   const y = (r: PlumeRecord) =>
     quantified(r) ? 182 - (Number(r.rate) / ceiling) * 138 : 275;
   const formatDate = (n: number) => new Date(n).toISOString().slice(5, 10);
+  // Calendar-day evidence needs calendar-day ticks: fractional-day ticks repeat labels.
+  const day = 86400000;
+  const tickStep = Math.max(1, Math.ceil(span / day / 4));
+  const ticks: number[] = [];
+  for (let d = Math.ceil(min / day) * day; d <= max; d += tickStep * day)
+    ticks.push(d);
+  const firstYear = new Date(min).getUTCFullYear(),
+    lastYear = new Date(max).getUTCFullYear();
   return (
     <div className="observation-timeline">
       <div className="timeline-toolbar">
@@ -90,17 +98,17 @@ export default function Timeline({
             </text>
           </g>
         ))}
-        {[0, 0.25, 0.5, 0.75, 1].map((t) => (
-          <g key={t}>
+        {ticks.map((date) => (
+          <g key={date}>
             <line
-              x1={56 + t * 564}
-              x2={56 + t * 564}
+              x1={x(date)}
+              x2={x(date)}
               y1="192"
               y2="199"
               stroke="var(--muted)"
             />
-            <text x={56 + t * 564} y="216" textAnchor="middle">
-              {formatDate(min + t * span)}
+            <text x={x(date)} y="216" textAnchor="middle">
+              {formatDate(date)}
             </text>
           </g>
         ))}
@@ -108,7 +116,7 @@ export default function Timeline({
           kg/h · instantaneous
         </text>
         <text x="620" y="239" textAnchor="end">
-          {new Date(min).getUTCFullYear()}–{new Date(max).getUTCFullYear()} ·
+          {firstYear === lastYear ? firstYear : `${firstYear}–${lastYear}`} ·
           provider dates
         </text>
         {hasUnquantified && (

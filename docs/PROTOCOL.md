@@ -4,6 +4,8 @@ A packet contains a strict `payload`, SHA-256 `digest`, attribution notice and o
 
 The payload includes the original claim, source and interval, snapshot manifest, policy digest, all selected raw source records, computed finding, human response and local-assistance provenance. Numbers in provider CSV records remain original strings. The protocol rejects unexpected fields, duplicate decoded JSON keys, invalid date boundaries, non-finite numbers and malformed Unicode. File limits are 12 MB for packets and 20 MB for the source ZIP.
 
+The claim may include an optional `reference` string (at most 1,500 characters) supplied by the reviewer, such as a document title, page or URL. It is covered by the canonical digest but is never automatically fetched or treated as authenticated. `hypothetical` distinguishes explicitly selected practice claims from user-entered statements; a user-entered statement is not a verified operator quotation. Older packets without the optional reference retain their original digest and still replay with this verifier.
+
 The browser and CLI verifier provide separate checks:
 
 1. **Integrity** recomputes the canonical digest. A matching self-declared digest only establishes consistency.

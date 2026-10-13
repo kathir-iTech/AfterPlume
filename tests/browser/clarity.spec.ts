@@ -18,6 +18,9 @@ test("changing a statement during archive loading cannot show the old finding", 
     await route.continue();
   });
   await page.goto("/review");
+  await page
+    .getByRole("button", { name: "Use a practice statement", exact: true })
+    .click();
   await page.getByLabel("Exact provider source ID").fill("AUS_S_010");
   await page.getByRole("button", { name: "Run evidence check" }).click();
   await started;
@@ -30,7 +33,7 @@ test("changing a statement during archive loading cannot show the old finding", 
   release();
   await response;
   await expect(
-    page.getByRole("heading", { name: "Bound the statement" }),
+    page.getByRole("heading", { name: "Statement and dates" }),
   ).toBeVisible();
   await expect(page.locator(".focused-finding")).toHaveCount(0);
   await expect(
@@ -57,6 +60,11 @@ test("first visit has one primary action and no catalogue or batch form", async 
     .trim()
     .split(/\s+/).length;
   expect(words).toBeLessThan(100);
+  await page
+    .getByRole("button", { name: "Find a source", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/explore$/);
+  await page.getByRole("button", { name: "Home", exact: true }).click();
   await page
     .getByRole("button", { name: "Watch the proof", exact: true })
     .click();
@@ -95,7 +103,20 @@ test("an exported file can be imported and automatically checked", async ({
   page,
 }) => {
   await page.goto("/review");
+  await page
+    .getByRole("button", { name: "Use a practice statement", exact: true })
+    .click();
   await page.getByRole("button", { name: "Run evidence check" }).click();
+  await expect(
+    page.getByRole("button", { name: "Export review", exact: true }),
+  ).toHaveCount(0);
+  await page.getByText("Retain with explanation", { exact: true }).click();
+  await page
+    .getByLabel("Your explanation")
+    .fill(
+      "The practice statement is retained here to exercise file verification.",
+    );
+  await page.getByRole("button", { name: "Complete this review" }).click();
   const event = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Export review", exact: true })

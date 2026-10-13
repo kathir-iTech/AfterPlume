@@ -65,6 +65,35 @@ beforeAll(async () => {
   );
 });
 describe("provider calendar dates", () => {
+  it("a statement reference travels in the hashed packet without claiming authentication", async () => {
+    const payload = {
+      ...packet.payload,
+      claim: {
+        ...packet.payload.claim,
+        hypothetical: false,
+        reference: "A user-supplied document, page 7",
+      },
+    };
+    const withReference = {
+      ...packet,
+      payload,
+      digest: await digestPayload(payload),
+    };
+    expect(
+      parsePacket(JSON.stringify(withReference)).payload.claim.reference,
+    ).toBe(payload.claim.reference);
+    const checked = await verifyPacket(withReference, zip);
+    expect(checked.integrity.status).toBe("MATCH");
+    expect(checked.snapshot.status).toBe("MATCH");
+    const altered = {
+      ...withReference,
+      payload: {
+        ...payload,
+        claim: { ...payload.claim, reference: "Changed after export" },
+      },
+    };
+    expect((await verifyPacket(altered)).integrity.status).toBe("MISMATCH");
+  });
   it.each([
     ["2024-02-29", true],
     ["2025-02-29", false],
