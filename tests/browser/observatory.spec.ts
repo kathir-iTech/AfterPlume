@@ -1,4 +1,43 @@
 import { test, expect } from "@playwright/test";
+test("failed model downloads preserve accepted keyword provenance", async ({
+  page,
+  context,
+}) => {
+  await context.route("**/models/**", (route) => route.abort());
+  await page.goto("/review");
+  await page
+    .getByLabel("Statement to review")
+    .fill(
+      "Methane emissions reduced by 45% compared with a measured baseline.",
+    );
+  await page
+    .getByRole("button", { name: "Suggest a claim type locally" })
+    .click();
+  await page.getByRole("button", { name: "Confirm", exact: true }).click();
+  await expect(page.getByText(/Local model unavailable/)).toBeVisible();
+  await expect(page.getByLabel("Confirmed claim type")).toHaveValue(
+    "reduction_percent",
+  );
+  await page.getByRole("button", { name: "Run evidence check" }).click();
+  await expect(
+    page.getByRole("heading", { name: "More evidence needed", exact: true }),
+  ).toBeVisible();
+  const event = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Export review", exact: true })
+    .click();
+  const download = await event;
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+  const packet = JSON.parse(Buffer.concat(chunks).toString());
+  expect(packet.payload.assistance).toMatchObject({
+    engine: "lexical",
+    suggestedKind: "reduction_percent",
+    confirmedByHuman: true,
+  });
+  expect(packet.payload.assistance.guidanceIds).toHaveLength(3);
+});
 test("result card exports a real PNG summary of the current review", async ({
   page,
 }) => {

@@ -370,10 +370,7 @@ export default function App() {
         if (m.error) {
           finishedAI.current = m.id;
           console.warn("Local embedding inference unavailable:", m.error);
-          const ids = lexicalRank(claim.text)
-            .slice(0, 3)
-            .map((r) => r.id);
-          setAssistance({ ...none, engine: "lexical", guidanceIds: ids });
+          // Keep the immediate suggestion and any human confirmation already made.
           setAiStatus(
             "Local model unavailable. Using keyword retrieval; the evidence check remains available.",
           );
