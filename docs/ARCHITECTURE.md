@@ -2,7 +2,7 @@
 
 The main entry opens a brief introduction and proof action. Separate, lazily loaded views handle the explorer, proof tour, review desk, scientific method, About and optional ledger tools. Browser routes are `/`, `/explore`, `/proof`, `/review`, `/verify`, `/method` and `/about`; explicit Vercel rewrites retain deep links.
 
-Optional ledger code is dynamically imported when needed. The production entry bundle is approximately 334 kB minified, compared with approximately 706 kB before this pass. This is an artifact-size comparison, not a loading-time benchmark; workers, data, model assets and optional chunks are separate downloads.
+Optional ledger code is dynamically imported when needed. The production entry bundle is approximately 336 kB minified, compared with approximately 706 kB before this pass. This is an artifact-size comparison, not a loading-time benchmark; workers, data, model assets and optional chunks are separate downloads.
 
 Production and the local static preview enforce the same content security policy. Scripts, workers and models are served from this app; WASM compilation and local test-RPC access are explicitly allowed. Inline style attributes support the data charts. Development HMR is not presented as a production security check.
 
@@ -36,3 +36,5 @@ Transformers.js runs an Apache-2.0 MiniLM embedding model in a web worker using 
 The Solidity registry contains no funds, tokens, upgradeable proxy or payable operations. Owner addresses publish sequential revisions with the exact predecessor digest. Explicitly authorized, distinct reviewer addresses may acknowledge only a current active revision. Withdrawal is terminal. Deployment salt, chain ID and contract address prevent accidental reuse across reset local chains.
 
 Public data fixtures retain UNEP attribution and noncommercial terms. Code and model have separate licenses. All source records and human narrative stay off-chain; only case identity, digests, role authorization and state transitions are recorded.
+
+The browser uses a lossless gzip transport envelope for the complete original source ZIP. The pinned envelope is hash-checked before decompression, and the reconstructed original archive is checked against the unchanged provider-download SHA-256. CSV selection, packet format and independent CLI replay remain unchanged. `python scripts/prepare_data.py` reproduces the transport using the pinned codec output; the original ZIP remains bundled and accepted.

@@ -12,7 +12,7 @@ test("changing a statement during archive loading cannot show the old finding", 
     requested = resolve;
   });
   await context.route("**/data/source-index.json", (route) => route.abort());
-  await context.route("**/data/mars-snapshot.zip", async (route) => {
+  await context.route("**/data/mars-snapshot.zip.gz", async (route) => {
     requested();
     await gate;
     await route.continue();
@@ -25,7 +25,7 @@ test("changing a statement during archive loading cannot show the old finding", 
     .getByLabel("Statement to review")
     .fill("A new statement awaiting a fresh review.");
   const response = page.waitForResponse((r) =>
-    r.url().endsWith("/data/mars-snapshot.zip"),
+    r.url().endsWith("/data/mars-snapshot.zip.gz"),
   );
   release();
   await response;

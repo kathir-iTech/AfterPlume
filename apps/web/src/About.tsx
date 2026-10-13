@@ -32,7 +32,7 @@ export default function About() {
       <details className="disclosure">
         <summary>What has been measured</summary>
         <p>
-          55 unit tests, 19 contract tests and end-to-end browser checks cover
+          58 unit tests, 19 contract tests and end-to-end browser checks cover
           the prototype. The authored guidance holdout ranked the expected note
           first in 16 of 18 hybrid queries. These are engineering checks, not
           evidence of user adoption or emissions reduction.

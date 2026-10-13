@@ -3,18 +3,14 @@ import {
   readKnownSnapshot,
   type PlumeRecord,
 } from "../../../packages/core/index.ts";
+import { fetchKnownSnapshot } from "../../../packages/core/transport.ts";
 let snapshot: ReturnType<typeof readKnownSnapshot> | undefined;
 let grouped: Map<string, PlumeRecord[]> | undefined;
 self.onmessage = async (event: MessageEvent) => {
   const { id, sourceId, start, end, batch } = event.data;
   try {
     snapshot ??= (async () => {
-      const response = await fetch("/data/mars-snapshot.zip");
-      if (!response.ok)
-        throw new Error(
-          "The trusted source archive could not be loaded. Try again.",
-        );
-      return readKnownSnapshot(new Uint8Array(await response.arrayBuffer()));
+      return readKnownSnapshot(await fetchKnownSnapshot());
     })();
     const data = await snapshot;
     if (!grouped) {

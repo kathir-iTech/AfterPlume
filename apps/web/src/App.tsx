@@ -43,6 +43,7 @@ const Observatory = lazy(() => import("./Observatory.tsx"));
 const ProofTour = lazy(() => import("./ProofTour.tsx"));
 const ReviewDesk = lazy(() => import("./ReviewDesk.tsx"));
 import { CheckRow } from "./Checks.tsx";
+import { fetchKnownSnapshot } from "../../../packages/core/transport.ts";
 import { type Fixture, type Assistance, type LocalAI } from "./ui-data.ts";
 const MethodView = lazy(() => import("./MethodView.tsx"));
 const LedgerEvidence = lazy(() => import("./LedgerEvidence.tsx"));
@@ -243,12 +244,7 @@ export default function App() {
   }, [history]);
   async function getZip() {
     if (!zip.current) {
-      const r = await fetch("/data/mars-snapshot.zip");
-      if (!r.ok)
-        throw new Error(
-          "Full trusted snapshot unavailable. Import the pinned ZIP to continue.",
-        );
-      zip.current = new Uint8Array(await r.arrayBuffer());
+      zip.current = await fetchKnownSnapshot();
     }
     return zip.current;
   }
@@ -858,8 +854,8 @@ export default function App() {
                     Verify against full snapshot
                   </button>
                   <p className="field-help">
-                    The first check loads the pinned 10.8 MB source ZIP.
-                    Imported links are never fetched.
+                    The first check loads a 2.8 MB transport copy of the
+                    original archive.
                   </p>
                   <label className="snapshot-upload">
                     <Upload size={14} /> Supply the pinned snapshot ZIP

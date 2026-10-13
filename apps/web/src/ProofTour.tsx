@@ -280,7 +280,7 @@ export default function ProofTour({
             </p>
           </>
         ) : (
-          <p>Checking the original archive. The first run loads 10.8 MB.</p>
+          <p>Checking the original source archive.</p>
         )}
       </div>
       <div className="proof-next">

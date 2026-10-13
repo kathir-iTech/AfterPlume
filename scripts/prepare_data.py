@@ -2,6 +2,7 @@
 from pathlib import Path
 from collections import defaultdict
 import csv, hashlib, io, json, shutil, sys, urllib.request, zipfile
+import gzip
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'apps/web/public/data'
 EXPECTED = 'e0721015e925c4d70012ca13e697f5638421bc7c2a42f7e3dce8edec6cee8481'
@@ -15,6 +16,10 @@ elif not target.exists():
         target.write_bytes(response.read(20_000_001))
 blob = target.read_bytes()
 assert hashlib.sha256(blob).hexdigest() == EXPECTED, 'Download is not the pinned snapshot. Supply the original ZIP; do not silently replace its hash.'
+encoded = gzip.compress(blob, compresslevel=9, mtime=0)
+transport_manifest=json.loads((ROOT/'packages/core/transport-manifest.json').read_text(encoding='utf-8'))
+assert hashlib.sha256(encoded).hexdigest()==transport_manifest['sha256'], 'Gzip output differs from the pinned transport. Keep the bundled envelope or explicitly version the codec output.'
+(OUT/'mars-snapshot.zip.gz').write_bytes(encoded)
 with zipfile.ZipFile(io.BytesIO(blob)) as archive:
     def rows(leaf):
         name = next(n for n in archive.namelist() if n.split('/')[-1] == leaf)
