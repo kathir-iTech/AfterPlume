@@ -102,6 +102,12 @@ test("explorer opens a different real source and keeps its review revision separ
   );
   await page.getByRole("button", { name: /Review history/ }).click();
   await expect(page.locator(".history-row")).toHaveCount(2);
+  await expect(
+    page.locator(".history-row").filter({ hasText: "AZE_S_010" }),
+  ).toContainText("Latest for source");
+  await expect(
+    page.locator(".history-row").filter({ hasText: "AUS_S_010" }),
+  ).toContainText("Latest for source");
   expect(errors).toEqual([]);
 });
 test("proof lab performs actual replay and catches a freshly rehashed omission", async ({

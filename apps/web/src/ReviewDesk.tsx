@@ -719,12 +719,32 @@ export default function ReviewDesk(props: Props) {
                 <strong>r{p.payload.revision}</strong>
                 <span>
                   {p.payload.response.action}
-                  <small>{short(p.digest)}</small>
+                  <small>
+                    {p.payload.claim.sourceId} · {short(p.digest)}
+                  </small>
                 </span>
-                <Pill tone={i === history.length - 1 ? "teal" : "neutral"}>
-                  {i === history.length - 1
-                    ? "Latest local"
-                    : "Superseded locally"}
+                <Pill
+                  tone={
+                    history
+                      .slice(i + 1)
+                      .some(
+                        (next) =>
+                          next.payload.claim.sourceId ===
+                          p.payload.claim.sourceId,
+                      )
+                      ? "neutral"
+                      : "teal"
+                  }
+                >
+                  {history
+                    .slice(i + 1)
+                    .some(
+                      (next) =>
+                        next.payload.claim.sourceId ===
+                        p.payload.claim.sourceId,
+                    )
+                    ? "Older revision"
+                    : "Latest for source"}
                 </Pill>
                 <span>{p.receipt ? "Commitment attached" : "Unpublished"}</span>
                 <button className="text-button" onClick={() => download(p)}>
