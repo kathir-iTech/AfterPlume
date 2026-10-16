@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@huggingface/transformers": "4.3.1",
-    "fflate": "0.8.2",
+    "fflate": "0.8.3",
     "json-canonicalize": "3.0.1",
     "lucide-react": "0.468.0",
     "papaparse": "5.5.3",
@@ -66,5 +66,10 @@
     "esbuild@0.25.12": true,
     "onnxruntime-node@1.30.0": true,
     "protobufjs@7.6.6": true
+  },
+  "overrides": {
+    "solc": {
+      "tmp": "0.2.7"
+    }
   }
 }

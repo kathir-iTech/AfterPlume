@@ -19,6 +19,7 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+      - run: npm audit --audit-level=moderate
       - run: npm run model:prepare
       - run: npm run check
       - run: npx playwright install --with-deps chromium

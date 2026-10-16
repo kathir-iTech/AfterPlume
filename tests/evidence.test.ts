@@ -210,8 +210,10 @@ describe("scientific scope", () => {
       selectRecords(claim, fixture.records),
     ));
   it("scans the full snapshot without excluding missing rate records", () => {
+    // Preserve the same sampled sources without scanning 30,319 rows for each catalogue entry.
+    const assignedSources = new Set(snapshot.records.map((r) => r.sourceId));
     const sources = [...snapshot.sourceIds]
-      .filter((id) => snapshot.records.some((r) => r.sourceId === id))
+      .filter((id) => assignedSources.has(id))
       .slice(0, 20);
     for (const id of sources) {
       const bounded = {

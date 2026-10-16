@@ -1,8 +1,8 @@
 # Architecture
 
-The main entry opens a brief introduction and proof action. Separate, lazily loaded views handle the explorer, proof tour, review desk, scientific method, About and optional ledger tools. Browser routes are `/`, `/explore`, `/proof`, `/review`, `/verify`, `/method` and `/about`; explicit Vercel rewrites retain deep links.
+The main entry opens a brief introduction with Find a source as its primary action. The proof example is secondary. Separate, lazily loaded views handle the explorer, proof tour, review desk, saved reviews, scientific method, About and optional ledger tools. Browser routes are `/`, `/explore`, `/proof`, `/review`, `/reviews`, `/verify`, `/method` and `/about`; explicit Vercel rewrites retain deep links.
 
-Optional ledger code is dynamically imported when needed. The production entry bundle is approximately 336 kB minified, compared with approximately 706 kB before this pass. This is an artifact-size comparison, not a loading-time benchmark; workers, data, model assets and optional chunks are separate downloads.
+Optional ledger code is dynamically imported when needed. The working-review release's production entry bundle is approximately 341 kB minified, compared with approximately 706 kB before route splitting. This is an artifact-size comparison, not a loading-time benchmark; workers, data, model assets and optional chunks are separate downloads.
 
 Production and the local static preview enforce the same content security policy. Scripts, workers and models are served from this app; WASM compilation and local test-RPC access are explicitly allowed. Inline style attributes support the data charts. Development HMR is not presented as a production security check.
 
@@ -29,7 +29,7 @@ flowchart LR
   L --> K
 ```
 
-The app is static Vite, React and TypeScript. Vercel hosts built files; no server database, login, paid model API or relayer is required. The small seeded case loads first; full-source verification loads the original ZIP on demand. Local history is schema-validated and versioned in browser storage.
+The app is static Vite, React and TypeScript. Vercel hosts built files; no server database, login, paid model API or relayer is required. The small seeded case bootstraps the app; full-source verification loads the original ZIP on demand. Active workspaces, archived drafts and completed revisions are schema-validated and versioned in browser storage. Restored evidence is checked for canonical integrity and full-source replay before its finding is displayed again.
 
 Transformers.js runs an Apache-2.0 MiniLM embedding model in a web worker using WASM. Model and runtime loading are separate from core review. An unavailable model uses explicitly labelled keyword retrieval. Human confirmation precedes any type change. Model inference cannot decide a finding.
 
