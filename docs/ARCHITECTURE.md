@@ -38,3 +38,7 @@ The Solidity registry contains no funds, tokens, upgradeable proxy or payable op
 Public data fixtures retain UNEP attribution and noncommercial terms. Code and model have separate licenses. All source records and human narrative stay off-chain; only case identity, digests, role authorization and state transitions are recorded.
 
 The browser uses a lossless gzip transport envelope for the complete original source ZIP. The pinned envelope is hash-checked before decompression, and the reconstructed original archive is checked against the unchanged provider-download SHA-256. CSV selection, packet format and independent CLI replay remain unchanged. `python scripts/prepare_data.py` reproduces the transport using the pinned codec output; the original ZIP remains bundled and accepted.
+
+## Portable reading report
+
+The completed-review actions can render a standalone, script-free HTML reading copy. All packet strings are HTML-escaped and a file-local content security policy forbids scripts, remote resources, forms and base-URL changes. It preserves all included records, missing-rate distinctions, practice/draft status, decisions, scientific limits and source/policy/packet fingerprints. It does not claim to perform verification: the companion JSON must still be replayed against the trusted snapshot. Report generation has no server, third-party PDF dependency or API key.

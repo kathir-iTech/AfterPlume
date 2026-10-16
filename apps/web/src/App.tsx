@@ -122,7 +122,6 @@ export default function App() {
   );
   const [aiStatus, setAiStatus] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
-  const [aiInfo, setAiInfo] = useState<LocalAI>();
   const [expanded, setExpanded] = useState<string>();
   const [verifyInput, setVerifyInput] = useState("");
   const [report, setReport] = useState<Verification>();
@@ -420,7 +419,6 @@ export default function App() {
     setResponse(emptyResponse);
     setError("");
     setAssistance(none);
-    setAiInfo(undefined);
     setAiStatus("");
   }
   async function runReview() {
@@ -528,7 +526,6 @@ export default function App() {
         if (m.result) {
           finishedAI.current = m.id;
           const result = m.result as LocalAI;
-          setAiInfo(result);
           setAssistance((previous) =>
             previous.confirmedByHuman
               ? previous
@@ -790,8 +787,6 @@ export default function App() {
             A<span />
           </span>
           AfterPlume
-          <span className="brand-divider" />
-          <span className="brand-caption">EVIDENCE OBSERVATORY</span>
         </a>
         <nav aria-label="Main navigation">
           {(
@@ -899,7 +894,6 @@ export default function App() {
               openSource={(source, start, end) =>
                 void openSource(source, start, end)
               }
-              watchProof={() => navigate("proof")}
               runBatch={snapshot.batch}
               busy={busy === "source"}
             />
@@ -995,7 +989,7 @@ export default function App() {
                   </p>
                 </div>
                 <button
-                  className="button secondary"
+                  className="button primary"
                   onClick={() => fileRef.current?.click()}
                 >
                   <Upload size={16} /> Import review packet
@@ -1093,18 +1087,20 @@ export default function App() {
                       }
                     />
                   </details>
-                  <button
-                    className="button primary full"
-                    disabled={!verifyInput || !!busy}
-                    onClick={() => verify()}
-                  >
-                    {busy === "verify" ? (
-                      <LoaderCircle className="spin" size={17} />
-                    ) : (
-                      <ShieldCheck size={17} />
-                    )}{" "}
-                    Verify against full snapshot
-                  </button>
+                  {verifyInput && (
+                    <button
+                      className={`button ${report ? "secondary" : "primary"} full`}
+                      disabled={!!busy}
+                      onClick={() => verify()}
+                    >
+                      {busy === "verify" ? (
+                        <LoaderCircle className="spin" size={17} />
+                      ) : (
+                        <ShieldCheck size={17} />
+                      )}{" "}
+                      {report ? "Recheck packet" : "Verify against full snapshot"}
+                    </button>
+                  )}
                   <details className="disclosure">
                     <summary>Use your own copy of the source archive</summary>
                     <label className="snapshot-upload">
@@ -1158,8 +1154,7 @@ export default function App() {
                       <ShieldCheck size={43} strokeWidth={1.1} />
                       <h3>Import a review.</h3>
                       <p>
-                        The verifier reconstructs the source selection and
-                        finding. No account or author’s app state is required.
+                        Check the file and every matching source record.
                       </p>
                     </div>
                   )}

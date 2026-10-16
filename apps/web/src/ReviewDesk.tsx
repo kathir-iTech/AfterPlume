@@ -30,6 +30,7 @@ import {
 import { Pill } from "./Checks.tsx";
 import Timeline from "./Timeline.tsx";
 import { downloadResultCard } from "./result-card.ts";
+import { downloadReviewReport } from "./review-report.ts";
 
 type Setter<T> = Dispatch<SetStateAction<T>>;
 type Props = {
@@ -243,6 +244,11 @@ export default function ReviewDesk(props: Props) {
             <details className="action-menu">
               <summary>More actions</summary>
               <div>
+                {complete && (
+                  <button onClick={() => downloadReviewReport(packet)}>
+                    Download readable report
+                  </button>
+                )}
                 {!complete && (
                   <button onClick={() => download(packet)}>
                     Export evidence draft

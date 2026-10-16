@@ -198,10 +198,6 @@ label {
   border-radius: 50%;
   background: #0d1912;
 }
-.brand-divider,
-.brand-caption {
-  display: none;
-}
 .topbar nav {
   display: flex;
   align-items: center;
@@ -1580,17 +1576,6 @@ label {
   background: #352e24;
   color: var(--amber);
 }
-.verification-summary {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 18px;
-  font-size: 12px;
-  color: var(--muted);
-}
-.verification-summary > svg {
-  flex-shrink: 0;
-}
 .attack-card {
   display: flex;
   align-items: flex-start;
@@ -1756,20 +1741,15 @@ label {
 .ledger-evidence details p {
   margin: 12px 0;
 }
-.ledger-evidence dl,
-.ledger-details {
+.ledger-evidence dl {
   display: grid;
   grid-template-columns: 130px 1fr;
   gap: 10px;
   font-size: 12px;
   overflow-wrap: anywhere;
 }
-.ledger-evidence dd,
-.ledger-details dd {
+.ledger-evidence dd {
   margin: 0;
-}
-.ledger-details dt {
-  color: var(--muted);
 }
 .receipt-details {
   padding: 14px;
@@ -2343,8 +2323,7 @@ footer a {
     flex-wrap: wrap;
     gap: 12px;
   }
-  .ledger-evidence dl,
-  .ledger-details {
+  .ledger-evidence dl {
     grid-template-columns: 1fr;
   }
   .ledger-actions {

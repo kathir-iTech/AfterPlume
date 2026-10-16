@@ -1,6 +1,5 @@
 import type {
   Claim,
-  HumanResponse,
   Packet,
   PlumeRecord,
   SnapshotManifest,

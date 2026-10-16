@@ -1,4 +1,38 @@
 import { test, expect } from "@playwright/test";
+import { pathToFileURL } from "node:url";
+
+test("a completed review produces a standalone readable report without executing pasted text", async ({ page, context }, testInfo) => {
+  await page.goto("/review");
+  await page.getByRole("button", { name: "Use a practice statement", exact: true }).click();
+  const attack = '<img src="https://example.invalid/leak" onerror="window.reportInjected=true"><script>window.reportInjected=true</script>';
+  await page.getByLabel("Statement to review").fill(`No methane detections were recorded. ${attack}`);
+  await page.getByLabel("Statement reference").fill("Practice document, page 2");
+  await page.getByRole("button", { name: "Run evidence check" }).click();
+  await expect(page.locator(".finding-count")).toContainText("3");
+  await page.getByText("Correct or narrow", { exact: true }).click();
+  await page.getByLabel("Your explanation").fill("Three observations match the interval; mitigation is not assessed.");
+  await page.getByLabel("Corrected statement").fill("Three detections are recorded in the selected snapshot and interval.");
+  await page.getByRole("button", { name: "Complete this review" }).click();
+  await page.getByText("More actions", { exact: true }).click();
+  const downloading = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download readable report", exact: true }).click();
+  const download = await downloading;
+  expect(download.suggestedFilename()).toBe("afterplume-AZE_S_010-r1-report.html");
+  const path = testInfo.outputPath("readable-report.html");
+  await download.saveAs(path);
+  const report = await context.newPage();
+  const requests: string[] = [];
+  report.on("request", (r) => { if (r.url().startsWith("http")) requests.push(r.url()); });
+  await report.goto(pathToFileURL(path).href);
+  await expect(report.getByRole("heading", { name: "AZE_S_010", exact: true })).toBeVisible();
+  await expect(report.locator("tbody tr")).toHaveCount(3);
+  await expect(report.getByText("Practice document, page 2", { exact: true })).toBeVisible();
+  await expect(report.locator("main")).toContainText(attack);
+  await expect(report.locator("img,script")).toHaveCount(0);
+  expect(await report.evaluate(() => (window as unknown as { reportInjected?: boolean }).reportInjected)).toBeUndefined();
+  expect(requests).toEqual([]);
+  await report.close();
+});
 
 test("narrow screens keep the source table's horizontal scrolling inside its container", async ({page}) => {
   await page.setViewportSize({width:320,height:800});

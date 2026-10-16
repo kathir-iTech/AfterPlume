@@ -1,7 +1,6 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import {
   ArrowRight,
-  ArrowUpRight,
   Download,
   Globe2,
   LoaderCircle,
@@ -13,13 +12,11 @@ import type { BatchRow, Source, SourceIndex } from "./explorer-types.ts";
 export default function Observatory({
   index,
   openSource,
-  watchProof,
   runBatch,
   busy,
 }: {
   index?: SourceIndex;
   openSource: (source: Source, start?: string, end?: string) => void;
-  watchProof: () => void;
   runBatch: (start: string, end: string) => Promise<BatchRow[]>;
   busy: boolean;
 }) {

@@ -61,7 +61,7 @@ export default function MethodView({
           <h3>Data license notices differ</h3>
           <p>
             The download dictionary states CC BY-NC-SA 4.0; general terms state
-            CC BY-NC 4.0. This noncommercial demo preserves attribution and
+            CC BY-NC 4.0. This noncommercial prototype preserves attribution and
             share-alike terms for adapted fixtures. Code is MIT; model is
             Apache-2.0.
           </p>

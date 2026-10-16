@@ -19,6 +19,10 @@ The working prototype is a local-first review tool. It requires no account or pa
 
 The public deployment shows recorded local-contract lifecycle evidence when ledger publication is opened. It labels the chain local and resettable. A locally configured browser can still perform actual wallet-driven publication. There is no claim of a deployed public testnet contract.
 
+## Reading and sharing a completed review
+
+Export review downloads the JSON packet used for replay. More actions → Download readable report creates a standalone HTML file containing the original statement, reference, decision, every matching observation, limits and fingerprints. It opens offline and can be printed to PDF from a browser. Pasted strings are escaped and a restrictive content security policy disables scripts and remote resources. This reading copy is explicitly not a verification certificate; use the companion JSON for replay.
+
 ## Full catalogue and batch checking
 
 `python scripts/prepare_data.py` derives the 4,211-source catalogue from the SHA-checked original ZIP. Opening another source loads and checks that original archive in a browser worker, preserving raw source records. Unassigned plumes are never assigned by map proximity. Browsing metadata does not replace the full source check.

@@ -13,7 +13,7 @@ The interactive example removes one observation and rebuilds the file's hash. Th
 1. **Find a source:** search or select a location in Explore, then choose Review.
 2. **Add your statement:** paste its exact wording, optionally note the document or URL, and confirm the claim type and dates. No statement is generated on your behalf.
 3. **Inspect the evidence:** review every matching observation and the bounded finding.
-4. **Record your decision:** correct or narrow, retain with explanation, or withdraw the statement from your review. Complete the review before exporting and verifying it.
+4. **Record your decision:** correct or narrow, retain with explanation, or exclude the statement from your report. Complete the review before exporting and verifying it. **More actions → Download readable report** creates a standalone reading copy you can print to PDF; the JSON export is the replayable packet.
 5. **Return to your work:** Your reviews contains saved decisions and unfinished drafts. Inputs survive reload; saved evidence is verified against the full snapshot before being displayed again.
 
 The [proof example](https://afterplume.vercel.app/proof) and an explicit practice statement remain available for learning. Practice statements are labelled in their exported files. Browser storage is local to this device; export JSON to share or back up a completed review.
@@ -106,7 +106,7 @@ Three layers: static evidence desk; shared deterministic policy and independent 
 
 See [architecture](docs/ARCHITECTURE.md), [packet protocol](docs/PROTOCOL.md), [authored evaluation queries](evaluation/queries.json) and generated reports in `evaluation/results/`. Retrieval measurements compare BM25, semantic and hybrid ranking on scenario-separated development and holdout queries. They do not measure methane detection or fraud accuracy.
 
-Actual checks: **62 unit tests and 19 EVM contract tests passed**. The authored holdout retrieval test ranked the expected guidance note first for **16/18 hybrid queries**, compared with **14/18 BM25 queries**. See [validation and limitations](docs/VALIDATION.md) for commands, device details, all engines and cold/warm measurements.
+Actual checks: **65 unit tests and 19 EVM contract tests passed**. The authored holdout retrieval test ranked the expected guidance note first for **16/18 hybrid queries**, compared with **14/18 BM25 queries**. See [validation and limitations](docs/VALIDATION.md) for commands, device details, all engines and cold/warm measurements.
 
 ![Global source explorer using the full pinned source catalogue](docs/screenshots/07-observatory.png)
 
